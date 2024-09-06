@@ -1,0 +1,94 @@
+import React from "react";
+
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FcGoogle } from "react-icons/fc";
+
+const Login = () => {
+  return (
+    <>
+      <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[1100px]">
+        <div className="flex items-center justify-center py-12 ">
+          <div className="mx-auto grid xl:min-h-[600px] xl:-mt-48 max-w-[800px] gap-6">
+            <div className="pt-4">
+              <Link to="/" className="flex items-center">
+                <img
+                  src="https://flowbite.com/docs/images/logo.svg"
+                  className="h-12"
+                  alt="Flowbite Logo"
+                />
+                <span className="self-center text-3xl font-semibold whitespace-nowrap dark:text-white">
+                  MeetEasy
+                </span>
+              </Link>
+            </div>
+            <div className="grid  ">
+              <h1 className="text-4xl font-bold">Login</h1>
+              <p className="text-balance text-muted-foreground">
+                Enter your email below to login to your account
+              </p>
+            </div>
+            <div className="grid gap-4">
+              <div className="grid-cols-2 gap-1">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="ml-auto inline-block text-sm underline"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              <Button type="submit" className="w-full bg-black">
+                Login
+              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-gray-100 px-2 pt-1 text-muted-foreground">
+                    Or
+                  </span>
+                </div>
+              </div>
+              <Button variant="outline" className="w-full">
+                Login with Google &nbsp; <FcGoogle size={32} />
+              </Button>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              Don&apos;t have an account?{" "}
+              <Link to="/signup" className="underline">
+                Sign up
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="hidden bg-muted lg:block">
+          <img
+            src="https://images.unsplash.com/photo-1531058020387-3be344556be6?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8OHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Image"
+            width="1920"
+            height="1080"
+            className="h-full w-full object-cover "
+          />
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Login;
