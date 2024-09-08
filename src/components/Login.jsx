@@ -1,12 +1,86 @@
-import React from "react";
-
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
+import { auth, googleProvider } from "../config/firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 
-const Login = () => {
+const Login = ({ setLoggedIn }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
+
+  const validateForm = () => {
+    let valid = true;
+    let emailError = "";
+    let passwordError = "";
+
+    // Email validation
+    if (!email) {
+      emailError = "Email is required.";
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      emailError = "Please enter a valid email address.";
+      valid = false;
+    }
+
+    // Password validation
+    if (!password) {
+      passwordError = "Password is required.";
+      valid = false;
+    }
+
+    setErrors({ email: emailError, password: passwordError });
+    return valid;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      try {
+        // Sign in the user with email and password
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        // Get the signed-in user
+        const user = userCredential.user;
+        console.log("User logged in:", user);
+        setLoggedIn(true);
+        navigate("/profile");
+
+        // Navigate to profile or dashboard after successful login
+      } catch (error) {
+        console.error("Error logging in:", error.message);
+      }
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      // Sign in the user with Google
+      const userCredential = await signInWithPopup(auth, googleProvider);
+
+      // Get the signed-in user
+      const user = userCredential?.user;
+      console.log("User logged in with Google:", user);
+      setLoggedIn(true);
+      navigate("/profile");
+
+      // Navigate to profile or dashboard after successful login
+    } catch (error) {
+      console.error("Error logging in with Google:", error.message);
+    }
+  };
+
+  console.log(auth?.currentUser?.email);
+
   return (
     <>
       <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[1100px]">
@@ -30,27 +104,40 @@ const Login = () => {
                 Enter your email below to login to your account
               </p>
             </div>
-            <div className="grid gap-4">
-              <div className="grid-cols-2 gap-1">
+            <form onSubmit={handleSubmit} className="grid gap-4">
+              <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="m@example.com"
-                  required
+                  className={errors.email ? "border-red-500" : ""}
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                   <Link
-                    href="/forgot-password"
+                    to="/forgot-password"
                     className="ml-auto inline-block text-sm underline"
                   >
                     Forgot your password?
                   </Link>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={errors.password ? "border-red-500" : ""}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm">{errors.password}</p>
+                )}
               </div>
               <Button type="submit" className="w-full bg-black">
                 Login
@@ -65,10 +152,14 @@ const Login = () => {
                   </span>
                 </div>
               </div>
-              <Button variant="outline" className="w-full">
-                Login with Google &nbsp; <FcGoogle size={32} />
-              </Button>
-            </div>
+            </form>
+            <Button
+              onClick={handleGoogleSignIn}
+              variant="outline"
+              className="w-full"
+            >
+              Login with Google &nbsp; <FcGoogle size={32} />
+            </Button>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link to="/signup" className="underline">

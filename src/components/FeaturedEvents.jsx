@@ -19,7 +19,7 @@ const FeaturedEvents = () => {
   }, []);
 
   return (
-    <div className="px-52 pt-6">
+    <div className=" px-14  md:px-52 pt-6">
       <h2 className="text-3xl font-semibold border-b mb-6">Featured Events</h2>
       <div className="flex flex-col md:flex-row items-center">
         <div className="md:mr-32 text-center md:text-left">
