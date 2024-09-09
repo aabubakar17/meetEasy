@@ -4,8 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
-import { auth, googleProvider } from "../config/firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider, db } from "../config/firebase";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 const Login = ({ setLoggedIn }) => {
   const [email, setEmail] = useState("");
@@ -43,6 +55,7 @@ const Login = ({ setLoggedIn }) => {
     if (validateForm()) {
       try {
         // Sign in the user with email and password
+        await setPersistence(auth, browserLocalPersistence);
         const userCredential = await signInWithEmailAndPassword(
           auth,
           email,
@@ -52,10 +65,19 @@ const Login = ({ setLoggedIn }) => {
         // Get the signed-in user
         const user = userCredential.user;
         console.log("User logged in:", user);
+
+        // Update lastLoginAt in Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          await updateDoc(userDocRef, {
+            lastLoginAt: serverTimestamp(),
+          });
+        }
+
         setLoggedIn(true);
         navigate("/profile");
-
-        // Navigate to profile or dashboard after successful login
       } catch (error) {
         console.error("Error logging in:", error.message);
       }
@@ -64,16 +86,38 @@ const Login = ({ setLoggedIn }) => {
 
   const handleGoogleSignIn = async () => {
     try {
-      // Sign in the user with Google
-      const userCredential = await signInWithPopup(auth, googleProvider);
+      await setPersistence(auth, browserLocalPersistence);
+      const result = await signInWithPopup(auth, googleProvider);
 
-      // Get the signed-in user
-      const user = userCredential?.user;
+      const user = result.user;
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        // Save Google user data to Firestore if it's a new user
+        await setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName || "",
+          email: user.email,
+          photoURL: user.photoURL || "",
+          role: "user", // Default role
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+        });
+      } else {
+        // Update last login time for existing users
+        await setDoc(
+          userRef,
+          {
+            lastLoginAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      }
+
       console.log("User logged in with Google:", user);
       setLoggedIn(true);
       navigate("/profile");
-
-      // Navigate to profile or dashboard after successful login
     } catch (error) {
       console.error("Error logging in with Google:", error.message);
     }

@@ -4,8 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../config/firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
+  updateProfile,
+} from "firebase/auth";
+import { auth, googleProvider, db } from "../config/firebase";
+import {
+  setDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore"; // Import Firestore functions
 
 const SignUp = ({ setLoggedIn }) => {
   const [firstName, setFirstName] = useState("");
@@ -20,6 +33,7 @@ const SignUp = ({ setLoggedIn }) => {
   });
 
   const navigate = useNavigate();
+
   const validateForm = () => {
     let valid = true;
     let firstNameError = "";
@@ -27,19 +41,16 @@ const SignUp = ({ setLoggedIn }) => {
     let emailError = "";
     let passwordError = "";
 
-    // First Name validation
     if (!firstName) {
       firstNameError = "First name is required.";
       valid = false;
     }
 
-    // Last Name validation
     if (!lastName) {
       lastNameError = "Last name is required.";
       valid = false;
     }
 
-    // Email validation
     if (!email) {
       emailError = "Email is required.";
       valid = false;
@@ -48,7 +59,6 @@ const SignUp = ({ setLoggedIn }) => {
       valid = false;
     }
 
-    // Password validation
     if (!password) {
       passwordError = "Password is required.";
       valid = false;
@@ -71,18 +81,33 @@ const SignUp = ({ setLoggedIn }) => {
 
     if (validateForm()) {
       try {
-        // Create the user with email and password
+        // Set persistence and create the user
+        await setPersistence(auth, browserLocalPersistence);
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
-
-        // Get the newly created user
         const user = userCredential.user;
 
-        // Optionally, you can save additional user data in Firestore or update the user's profile
-        console.log("User signed up:", user);
+        // Update user's display name
+        await updateProfile(user, {
+          displayName: `${firstName} ${lastName}`,
+        });
+
+        // Save user data to Firestore with their UID as the document ID
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          displayName: user.displayName || `${firstName} ${lastName}`,
+          email: user.email,
+          photoURL: user.photoURL || "",
+          role: "user", // Default role
+          createdAt: serverTimestamp(), // Firestore timestamp
+          lastLoginAt: serverTimestamp(), // Timestamp for login
+        });
+
+        // Redirect and log in
+        console.log("User signed up and saved:", user);
         setLoggedIn(true);
         navigate("/profile");
       } catch (error) {
@@ -93,16 +118,38 @@ const SignUp = ({ setLoggedIn }) => {
 
   const handleGoogleSignIn = async () => {
     try {
-      // Sign in the user with Google
-      const userCredential = await signInWithPopup(auth, googleProvider);
+      await setPersistence(auth, browserLocalPersistence);
+      const result = await signInWithPopup(auth, googleProvider);
 
-      // Get the signed-in user
-      const user = userCredential?.user;
+      const user = result.user;
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        // Save Google user data to Firestore if it's a new user
+        await setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName || "",
+          email: user.email,
+          photoURL: user.photoURL || "",
+          role: "user", // Default role
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+        });
+      } else {
+        // Update last login time for existing users
+        await setDoc(
+          userRef,
+          {
+            lastLoginAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      }
+
       console.log("User logged in with Google:", user);
       setLoggedIn(true);
       navigate("/profile");
-
-      // Navigate to profile or dashboard after successful login
     } catch (error) {
       console.error("Error logging in with Google:", error.message);
     }
@@ -204,7 +251,7 @@ const SignUp = ({ setLoggedIn }) => {
                 variant="outline"
                 className="w-full"
               >
-                Login with Google &nbsp; <FcGoogle size={32} />
+                Sign up with Google &nbsp; <FcGoogle size={32} />
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
