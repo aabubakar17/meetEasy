@@ -25,6 +25,7 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setLoggedIn(true);
+        console.log("User is logged in");
       } else {
         setLoggedIn(false);
       }
@@ -32,7 +33,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, [navigate, setLoggedIn]);
+  }, [setLoggedIn]);
 
   if (loading) {
     // Optionally show a loading spinner or message

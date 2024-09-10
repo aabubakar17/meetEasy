@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   doc,
   getDoc,
@@ -132,11 +132,19 @@ export default function Profile() {
       </header>
       <main className="flex-1 py-8 px-4 md:px-6">
         <Tabs defaultValue="events" className="w-full">
-          <TabsList className="border-b">
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="attendees">Attendees</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-normal mb-4">
+            {/* Tabs List */}
+            <TabsList className="border-b">
+              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="attendees">Attendees</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+
+            {/* Button aligned to the right */}
+            <Link to="/create-event">
+              <Button className="ml-4 bg-black py-2">Create Events + </Button>
+            </Link>
+          </div>
           <TabsContent value="events">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {events.map((event, index) => (
