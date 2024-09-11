@@ -11,6 +11,8 @@ import Profile from "./components/Profile";
 import CreateEvent from "./components/CreateEvent";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./config/firebase";
+import EditEvent from "./components/EditEvent";
+import DeleteEvent from "./components/DeleteEvent";
 
 function App() {
   const location = useLocation();
@@ -52,6 +54,8 @@ function App() {
         <Route path="/searchresults" element={<SearchResult />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/create-event" element={<CreateEvent />} />
+        <Route path="/edit-event/:eventId" element={<EditEvent />} />
+        <Route path="/delete-event/:eventId" element={<DeleteEvent />} />
       </Routes>
       <Footer />
     </div>

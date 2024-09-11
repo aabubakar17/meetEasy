@@ -29,7 +29,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
+import { FaEdit } from "react-icons/fa";
+import { X } from "lucide-react";
+import { deleteDoc } from "firebase/firestore";
 export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [events, setEvents] = useState([]);
@@ -39,6 +41,8 @@ export default function Profile() {
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState("Event Creator");
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -57,14 +61,21 @@ export default function Profile() {
             setEditRole(userDoc.data().role || "Event Creator");
           }
 
-          // Fetch user events
+          // Fetch only the events created by the current user
           const eventsRef = collection(db, "events");
           const eventsSnapshot = await getDocs(eventsRef);
-          const eventsList = eventsSnapshot.docs.map((doc) => doc.data());
+
+          // Filter events where the userId matches the current user's UID
+          const eventsList = eventsSnapshot.docs
+            .filter((doc) => doc.data().userId === user.uid)
+            .map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
           setEvents(eventsList);
 
-          // Fetch user attendees (assuming you have an "attendees" collection or field)
-          // Adjust according to your Firestore structure
+          // Fetch user attendees (adjust according to your Firestore structure)
           const attendeesSnapshot = await getDocs(collection(db, "attendees"));
           const attendeesList = attendeesSnapshot.docs.map((doc) => doc.data());
           setAttendees(attendeesList);
@@ -103,6 +114,25 @@ export default function Profile() {
   const handleCloseModal = () => {
     setShowModal(false);
     window.location.reload();
+  };
+
+  const handleDeleteEventModal = (eventId) => {
+    setSelectedEventId(eventId); // Store the event ID of the event you want to delete
+    setShowDeleteModal(true); // Show the modal
+  };
+
+  const handleDeleteEvent = async () => {
+    try {
+      if (selectedEventId) {
+        const eventRef = doc(db, "events", selectedEventId);
+        await deleteDoc(eventRef); // Delete the event from Firestore
+        setEvents(events.filter((event) => event.id !== selectedEventId)); // Update local state to remove the event
+        setShowDeleteModal(false); // Close the modal
+        console.log("Event deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -150,7 +180,28 @@ export default function Profile() {
               {events.map((event, index) => (
                 <Card key={index}>
                   <CardHeader>
-                    <CardTitle>{event.title}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>{event.title}</CardTitle>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => navigate(`/edit-event/${event.id}`)}
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteEventModal(event.id)}
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
                     <CardDescription>
                       <span>{event.date}</span>
                       <br />
@@ -298,6 +349,16 @@ export default function Profile() {
           </TabsContent>
         </Tabs>
       </main>
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-8 rounded-lg">
+            <h2 className="text-xl font-semibold">Delete Event</h2>
+            <p>Are you sure you want to delete your event?</p>
+            <Button onClick={handleDeleteEvent}>Delete event</Button>
+            <Button onClick={() => setShowDeleteModal(false)}>Close</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

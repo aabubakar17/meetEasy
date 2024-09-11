@@ -221,7 +221,7 @@ export default function CreateEventForm() {
 
           <div className="space-y-2">
             <Label htmlFor="category">Event Category</Label>
-            <Select>
+            <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
