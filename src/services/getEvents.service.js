@@ -2,6 +2,9 @@ const TICKETMASTER_API_KEY = import.meta.env
   .VITE_REACT_APP_TICKETMASTER_API_KEY;
 import axios from "axios";
 
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
+
 // Function to fetch events by classification
 const fetchEventsByClassification = async (classification) => {
   try {
@@ -49,4 +52,64 @@ export const fetchEventsByLocationKeyword = async (event, location) => {
     console.error(`Error fetching ${event} events:`, error);
     return [];
   }
+};
+
+const fetchTicketmasterEventDetails = async (eventId) => {
+  try {
+    const response = await axios.get(
+      `https://app.ticketmaster.com/discovery/v2/events/${eventId}.json?apikey=${TICKETMASTER_API_KEY}`
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      // Handle 404 errors specifically
+      console.warn(`Event ID ${eventId} not found in Ticketmaster.`);
+      return null;
+    }
+    console.error("Error fetching Ticketmaster event details:", error);
+    throw error; // Re-throw other errors to handle in the main function
+  }
+};
+
+// Function to fetch event details from Firestore
+const fetchFirestoreEventDetails = async (eventId) => {
+  try {
+    const eventRef = doc(db, "events", eventId);
+    const eventSnap = await getDoc(eventRef);
+
+    if (eventSnap.exists()) {
+      return eventSnap.data();
+    } else {
+      console.error("No such document in Firestore!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching Firestore event details:", error);
+    throw error; // Rethrow to handle in the main function
+  }
+};
+
+export const fetchEventDetailsById = async (eventId) => {
+  try {
+    // Attempt to fetch from Ticketmaster API
+    const ticketmasterData = await fetchTicketmasterEventDetails(eventId);
+    if (ticketmasterData) {
+      return ticketmasterData;
+    }
+  } catch (error) {
+    console.warn("Ticketmaster fetch failed, trying Firestore...");
+  }
+
+  try {
+    // If Ticketmaster fetch fails or returns no data, attempt to fetch from Firestore
+    const firestoreData = await fetchFirestoreEventDetails(eventId);
+    if (firestoreData) {
+      return firestoreData;
+    }
+  } catch (error) {
+    console.error("Firestore fetch failed:", error);
+  }
+
+  // Return null if no data is found in both sources
+  return null;
 };

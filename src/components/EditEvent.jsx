@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, auth } from "../config/firebase";
+import { db, auth, storage } from "../config/firebase"; // Include storage
 import {
   Card,
   CardContent,
@@ -27,12 +27,23 @@ import {
 } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import FileDropzone from "./FileDropzone";
-import { ref, uploadBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Added getDownloadURL
 import { format } from "date-fns";
+import { v4 } from "uuid"; // Import UUID to create unique filenames
+import { CalendarIcon, PlusCircle, X } from "lucide-react";
+
+// Helper function to generate keywords array from title
+const generateKeywords = (title) => {
+  return title
+    .split(" ")
+    .map((word) => word.toLowerCase()) // Convert each word to lowercase
+    .filter((word) => word.length > 1); // Filter out any short/insignificant words
+};
 
 export default function EditEvent() {
   const { eventId } = useParams(); // Assuming eventId is passed via route params
   const [eventData, setEventData] = useState(null);
+  const [eventTime, setEventTime] = useState(""); // Added state for event time
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -40,9 +51,12 @@ export default function EditEvent() {
   const [eventDate, setEventDate] = useState(null);
   const [ticketTypes, setTicketTypes] = useState([{ name: "", price: "" }]);
   const [file, setFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState(""); // To store the current image URL
+  const [venue, setVenue] = useState("");
 
   const navigate = useNavigate();
 
+  // Fetch existing event data
   useEffect(() => {
     const fetchEvent = async () => {
       const eventRef = doc(db, "events", eventId);
@@ -59,6 +73,9 @@ export default function EditEvent() {
           data.eventDate ? new Date(data.eventDate.seconds * 1000) : null
         );
         setTicketTypes(data.ticketTypes || [{ name: "", price: "" }]);
+        setImageUrl(data.imageUrl); // Set current image URL
+        setVenue(data.venue);
+        setEventTime(data.eventTime); // Set event time
       }
     };
 
@@ -71,19 +88,48 @@ export default function EditEvent() {
     setTicketTypes(newTicketTypes);
   };
 
+  // Handle image upload and get the download URL
+  const uploadImage = async () => {
+    if (!file) return null;
+
+    try {
+      const imageRef = ref(storage, `images/${file.name + v4()}`);
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading image:", error.message);
+      return null;
+    }
+  };
+
+  // Handle updating the event
   const handleUpdateEvent = async (e) => {
     e.preventDefault();
 
     try {
+      // If a new image was uploaded, get its URL
+      let newImageUrl = imageUrl;
+      if (file) {
+        newImageUrl = await uploadImage();
+      }
+
+      console.log(eventDate);
+
+      // Generate titleKeywords based on the event title
+      const titleKeywords = generateKeywords(title);
+
       const eventRef = doc(db, "events", eventId);
       await updateDoc(eventRef, {
         title,
         description,
-        location,
+        location: location.toLowerCase(), // Store location in lowercase
         category,
         eventDate,
+        eventTime,
         ticketTypes,
-        imageUrlL: file ? file.name : eventData.imageUrlL,
+        imageUrl: newImageUrl, // Update image URL (if it changed)
+        titleKeywords, // Save the generated title keywords
       });
 
       // Navigate back to profile or show a success message
@@ -91,15 +137,6 @@ export default function EditEvent() {
     } catch (error) {
       console.error("Error updating event:", error);
     }
-  };
-
-  const uploadImage = () => {
-    if (!file) return;
-
-    const imageRef = ref(storage, `images/${file.name + v4()}`);
-    uploadBytes(imageRef, file).then((snapshot) => {
-      console.log("Uploaded a blob or file!", snapshot);
-    });
   };
 
   if (!eventData) {
@@ -129,25 +166,44 @@ export default function EditEvent() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  {eventDate ? format(eventDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <Calendar
-                  mode="single"
-                  selected={eventDate}
-                  onSelect={setEventDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="flex flex-row space-x-4 items-end">
+            {" "}
+            {/* Flex container for date and time */}
+            <div className="space-y-2 flex-1">
+              <Label>Event Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {eventDate ? (
+                      format(eventDate, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={eventDate}
+                    onSelect={setEventDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="time">Event Time</Label>
+              <Input
+                type="time"
+                id="time"
+                value={eventTime}
+                onChange={(e) => setEventTime(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -155,6 +211,18 @@ export default function EditEvent() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Event location"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="Venue">Location</Label>
+            <Input
+              id="Venue"
+              value={venue}
+              placeholder="Event Venue"
+              onChange={(e) => {
+                setVenue(e.target.value);
+              }}
             />
           </div>
 

@@ -13,6 +13,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./config/firebase";
 import EditEvent from "./components/EditEvent";
 import DeleteEvent from "./components/DeleteEvent";
+import EventDetails from "./components/EventDetails";
 
 function App() {
   const location = useLocation();
@@ -56,6 +57,7 @@ function App() {
         <Route path="/create-event" element={<CreateEvent />} />
         <Route path="/edit-event/:eventId" element={<EditEvent />} />
         <Route path="/delete-event/:eventId" element={<DeleteEvent />} />
+        <Route path="/event-details/:eventId" element={<EventDetails />} />
       </Routes>
       <Footer />
     </div>

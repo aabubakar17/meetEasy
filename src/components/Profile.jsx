@@ -83,14 +83,16 @@ export default function Profile() {
           navigate("/login");
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        if (error.code != "permission-denied") {
+          console.error("Error fetching user data:", error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, []);
 
   const handleSaveChanges = async () => {
     try {
@@ -162,7 +164,7 @@ export default function Profile() {
       </header>
       <main className="flex-1 py-8 px-4 md:px-6">
         <Tabs defaultValue="events" className="w-full">
-          <div className="flex items-center justify-normal mb-4">
+          <div className="flex flex-col items-center md:flex-row justify-normal mb-4">
             {/* Tabs List */}
             <TabsList className="border-b">
               <TabsTrigger value="events">Events</TabsTrigger>
@@ -172,7 +174,9 @@ export default function Profile() {
 
             {/* Button aligned to the right */}
             <Link to="/create-event">
-              <Button className="ml-4 bg-black py-2">Create Events + </Button>
+              <Button className="ml-4 mt-2 imd:m-0 bg-black py-2">
+                Create Events +{" "}
+              </Button>
             </Link>
           </div>
           <TabsContent value="events">
@@ -211,7 +215,7 @@ export default function Profile() {
                   <CardContent>
                     <div className="grid gap-4">
                       <img
-                        src={event.image || "/placeholder-image.jpg"}
+                        src={event.imageUrl || "/placeholder-image.jpg"}
                         width={600}
                         height={400}
                         alt="Event Image"
@@ -221,7 +225,12 @@ export default function Profile() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button variant="outline">View Event</Button>
+                    <Button
+                      onClick={() => navigate(`/event-details/${event.id}`)}
+                      variant="outline"
+                    >
+                      View Event
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}

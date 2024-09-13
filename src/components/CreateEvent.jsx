@@ -29,13 +29,14 @@ import { format } from "date-fns";
 
 import FileDropzone from "./FileDropzone";
 import { storage } from "../config/firebase";
-import { ref, uploadBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
 import { auth, db } from "../config/firebase";
 import { addDoc, collection } from "firebase/firestore";
 
 export default function CreateEventForm() {
   const [eventDate, setEventDate] = useState(null);
+  const [eventTime, setEventTime] = useState(""); // Added state for event time
   const [ticketTypes, setTicketTypes] = useState([{ name: "", price: "" }]);
   const [category, setCategory] = useState("");
   const [file, setFile] = useState(null);
@@ -44,6 +45,7 @@ export default function CreateEventForm() {
   const [location, setLocation] = useState("");
   const [title, setTitle] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [venue, setVenue] = useState("");
 
   const addTicketType = () => {
     setTicketTypes([...ticketTypes, { name: "", price: "" }]);
@@ -61,40 +63,34 @@ export default function CreateEventForm() {
   };
 
   const handleSubmit = async (e) => {
-    console.log("test");
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log("Form submitted", {
-      eventDate,
-      ticketTypes,
-      // Add other form fields here
-    });
 
     try {
-      // Add event to database
       const user = auth.currentUser;
-      console.log(user);
       if (!user) return;
+
+      // Upload image and get the download URL
+      const imageUrl = await uploadImage();
 
       const eventRef = collection(db, "events");
       await addDoc(eventRef, {
         userId: user.uid,
-        title,
+        title: title.toLowerCase(),
         description: eventDescription,
-        location,
+        location: location.toLowerCase(),
         category,
         eventDate,
+        eventTime, // Include event time in submission
         ticketTypes,
-        imageUrl: file.name,
+        venue,
+        titleKeywords: title.toLowerCase().split(" "), // Store title keywords
+        imageUrl, // Store the image URL in Firestore
       });
+
       setShowModal(true);
     } catch (error) {
       console.error("Error adding event:", error.message);
     }
-
-    // Clear form fields
-
-    // Optionally show a success message to the user
   };
 
   const handleCloseModal = () => {
@@ -102,18 +98,26 @@ export default function CreateEventForm() {
     window.location.reload();
   };
 
-  const uploadImage = () => {
+  const uploadImage = async () => {
     if (!file) return;
     setLoading(true);
-    // Here you would typically upload the file to your backend
-    setTimeout(() => {
+
+    try {
+      const imageRef = ref(storage, `images/${file.name + v4()}`);
+      const snapshot = await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      console.log("Uploaded a file and got URL:", downloadURL);
+
+      // Store the downloadURL to use when saving the event
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading image:", error.message);
+    } finally {
       setLoading(false);
-    }, 2000);
-    const imageRef = ref(storage, `images/${file.name + v4()}`);
-    uploadBytes(imageRef, file).then((snapshot) => {
-      console.log("Uploaded a blob or file!", snapshot);
-    });
+    }
   };
+
   return (
     <Card className="w-full max-w-2xl mx-auto md:mb-24 my-6">
       <CardHeader>
@@ -146,31 +150,44 @@ export default function CreateEventForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Event Date and Time</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {eventDate ? (
-                    format(eventDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={eventDate}
-                  onSelect={setEventDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="flex flex-row space-x-4 items-end">
+            {" "}
+            {/* Flex container for date and time */}
+            <div className="space-y-2 flex-1">
+              <Label>Event Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {eventDate ? (
+                      format(eventDate, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={eventDate}
+                    onSelect={setEventDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="time">Event Time</Label>
+              <Input
+                type="time"
+                id="time"
+                value={eventTime}
+                onChange={(e) => setEventTime(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -180,6 +197,17 @@ export default function CreateEventForm() {
               placeholder="Event location"
               onChange={(e) => {
                 setLocation(e.target.value);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="Venue">Venue</Label>
+            <Input
+              id="Venue"
+              placeholder="Event Venue"
+              onChange={(e) => {
+                setVenue(e.target.value);
               }}
             />
           </div>

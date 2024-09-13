@@ -10,7 +10,7 @@ const Searchbar = () => {
     e.preventDefault();
 
     console.log(event, location);
-    if (!event || !location) return;
+    if (!event && !location) return;
     navigate(`/searchresults?event=${event}&location=${location}`);
   };
 
