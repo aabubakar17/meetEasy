@@ -146,7 +146,12 @@ const EventDetails = () => {
             )}
           </div>
 
-          {showModal && <EventRegistration event={event} />}
+          {showModal && (
+            <EventRegistration
+              event={event}
+              onClose={() => setShowModal(false)}
+            />
+          )}
         </div>
       </div>
     </div>

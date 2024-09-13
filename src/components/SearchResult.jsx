@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { fetchEventsByLocationKeyword } from "../services/getEvents.service";
 import { useLocation, useNavigate } from "react-router-dom";
-import { collection, getDocs, query, where } from "firebase/firestore"; // Import Firestore functions
-import { db } from "../config/firebase"; // Firestore config
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../config/firebase";
 import {
   Card,
   CardContent,
@@ -28,25 +28,46 @@ const SearchResult = () => {
         locationSearch
       );
 
-      // Fetch user-created events from Firestore
       const eventsRef = collection(db, "events");
-      const q = query(
-        eventsRef,
-        where("location", "==", locationSearch.toLowerCase()),
-        where("titleKeywords", "array-contains", eventSearch.toLowerCase())
-      );
-      const userEventsSnapshot = await getDocs(q);
-      const userEvents = userEventsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      let userEvents = [];
 
-      console.log(userEvents);
-      // Merge external events and user-created events
-      const mergedEvents = [...userEvents, ...(externalEvents || [])];
+      // Query for Firestore user events by location
+      if (locationSearch) {
+        const locationQuery = query(
+          eventsRef,
+          where("location", "==", locationSearch.toLowerCase())
+        );
+        const locationSnapshot = await getDocs(locationQuery);
+        const locationEvents = locationSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        userEvents = [...userEvents, ...locationEvents];
+      }
+
+      // Query for Firestore user events by titleKeywords
+      if (eventSearch) {
+        const keywordQuery = query(
+          eventsRef,
+          where("titleKeywords", "array-contains", eventSearch.toLowerCase())
+        );
+        const keywordSnapshot = await getDocs(keywordQuery);
+        const keywordEvents = keywordSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        userEvents = [...userEvents, ...keywordEvents];
+      }
+
+      // Remove duplicates based on event ID
+      const uniqueUserEvents = Array.from(
+        new Map(userEvents.map((event) => [event.id, event])).values()
+      );
+
+      // Merge external events and Firestore user events
+      const mergedEvents = [...uniqueUserEvents, ...(externalEvents || [])];
 
       setSearchResults(mergedEvents);
-      console.log(mergedEvents);
     };
 
     fetchEvents();
@@ -63,13 +84,12 @@ const SearchResult = () => {
           searchResults.map((event) => (
             <Card key={event.id} className="shadow-md">
               <CardHeader className="flex flex-col items-start">
-                {console.log(event.eventTime)}
                 <img
                   src={
                     event.imageUrl ||
                     event.images?.[0]?.url ||
                     "default-image.jpg"
-                  } // Use image from Firebase Storage or external API
+                  }
                   alt={event.name || event.title}
                   className="w-full h-48 object-cover mb-4"
                 />
@@ -79,30 +99,20 @@ const SearchResult = () => {
                 <span className="text-gray-500 text-sm">
                   {(() => {
                     let eventDate;
-
-                    // Handle external API date (e.g., event.dates.start.localDate)
                     if (event.dates?.start?.localDate) {
                       eventDate = new Date(event.dates.start.localDate);
-                    }
-                    // Handle Firestore date (e.g., event.eventDate as Firestore Timestamp)
-                    else if (event.eventDate) {
+                    } else if (event.eventDate) {
                       eventDate =
                         typeof event.eventDate.seconds === "number"
-                          ? new Date(event.eventDate.seconds * 1000) // Firestore Timestamp
-                          : new Date(event.eventDate); // Plain Date
+                          ? new Date(event.eventDate.seconds * 1000)
+                          : new Date(event.eventDate);
                     }
-
-                    // If we have a valid eventDate, format it, otherwise display nothing
                     return eventDate
                       ? eventDate.toDateString()
                       : "Date not available";
                   })()}{" "}
                   {event.dates?.start?.localTime && (
-                    <>
-                      at{" "}
-                      {event.dates.start.localTime.substring(0, 5) ||
-                        event.eventTime}
-                    </>
+                    <>at {event.dates.start.localTime.substring(0, 5)}</>
                   )}
                   {event.eventTime && <>at {event.eventTime}</>}
                 </span>
