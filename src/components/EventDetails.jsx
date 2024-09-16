@@ -31,18 +31,26 @@ const EventDetails = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <div className="flex flex-col lg:flex-row">
-          <div className="lg:w-1/3">
+        <div className="flex flex-col items-center ">
+          <div className="lg:flex  mb-4">
             <img
               src={
                 event.imageUrl || event.images?.[0]?.url || "default-image.jpg"
               }
               alt={event.name}
-              className="w-full h-64 object-cover rounded-lg"
+              className="w-full h-96 object-cover rounded-lg "
             />
           </div>
-          <div className="lg:w-2/3 lg:pl-6 mt-6 lg:mt-0">
-            <h1 className="text-3xl font-bold">{event.name || event.title}</h1>
+          <div className="flex flex-col items-center lg:w-2/3 lg:pl-6 mt-6 lg:mt-0">
+            <h1 className="text-3xl font-bold">
+              {event.name ||
+                event.title.replace(
+                  /\w\S*/g,
+                  (text) =>
+                    text.charAt(0).toUpperCase() +
+                    text.substring(1).toLowerCase()
+                )}
+            </h1>
             {event.dates?.start?.localDate && (
               <p className="text-gray-700 mt-2">
                 {format(new Date(event.dates.start.localDate), "PPP")}
@@ -55,8 +63,16 @@ const EventDetails = () => {
               <p className="text-gray-600 mt-1">{event.place.name}</p>
             )}
             {event.location && (
-              <p className="text-gray-600 mt-1">{event.location}</p>
+              <p className="text-gray-600 mt-1">
+                {event.location.replace(
+                  /\w\S*/g,
+                  (text) =>
+                    text.charAt(0).toUpperCase() +
+                    text.substring(1).toLowerCase()
+                )}
+              </p>
             )}
+            {event.venue && <p className="text-gray-600 mt-1">{event.venue}</p>}
             {
               <span className="text-gray-500 text-sm">
                 {(() => {
@@ -89,10 +105,35 @@ const EventDetails = () => {
                 {event.eventTime && <>at {event.eventTime}</>}
               </span>
             }
+
+            {event.ticketTypes?.length > 0 &&
+              (event.ticketTypes[0].price === "0" ? (
+                <Badge className=" mt-2 text-sm text-gray-700 bg-green-100">
+                  Free Event
+                </Badge>
+              ) : (
+                <Badge className="mt-2 text-sm text-gray-700 bg-green-100">
+                  £{event.ticketTypes[0].price}
+                </Badge>
+              ))}
+
+            {!event.url && (
+              <div className="mt-4">
+                <Button
+                  onClick={() => setShowModal(true)} // Fix typo in onClick
+                  className="bg-black text-white"
+                >
+                  Get Tickets
+                </Button>
+              </div>
+            )}
+
             {event.description && (
               <div className="mt-4">
                 <h2 className="text-xl font-semibold">Description</h2>
-                <p className="text-gray-700 mt-2">{event.description}</p>
+                <p className=" description text-gray-700 mt-2">
+                  {event.description}
+                </p>
               </div>
             )}
             {event.url && (
@@ -107,26 +148,6 @@ const EventDetails = () => {
                     Buy Ticket
                   </Button>
                 </Link>
-              </div>
-            )}
-
-            {event.ticketTypes?.length > 0 &&
-              (event.ticketTypes[0].price === "0" ? (
-                <Badge className="text-gray-700 bg-green-100">Free Event</Badge>
-              ) : (
-                <Badge className="text-gray-700 bg-green-100">
-                  £{event.ticketTypes[0].price}
-                </Badge>
-              ))}
-
-            {!event.url && (
-              <div className="mt-4">
-                <Button
-                  onClick={() => setShowModal(true)} // Fix typo in onClick
-                  className="bg-black text-white"
-                >
-                  Get Tickets
-                </Button>
               </div>
             )}
 

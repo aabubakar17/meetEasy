@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { FaEdit } from "react-icons/fa";
 import { X } from "lucide-react";
-import { deleteDoc } from "firebase/firestore";
+import { deleteDoc, query, where } from "firebase/firestore";
 export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [events, setEvents] = useState([]);
@@ -43,6 +43,7 @@ export default function Profile() {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState(null);
+  const [groupedAttendees, setGroupedAttendees] = useState({});
 
   const navigate = useNavigate();
 
@@ -64,8 +65,6 @@ export default function Profile() {
           // Fetch only the events created by the current user
           const eventsRef = collection(db, "events");
           const eventsSnapshot = await getDocs(eventsRef);
-
-          // Filter events where the userId matches the current user's UID
           const eventsList = eventsSnapshot.docs
             .filter((doc) => doc.data().userId === user.uid)
             .map((doc) => ({
@@ -75,15 +74,38 @@ export default function Profile() {
 
           setEvents(eventsList);
 
-          // Fetch user attendees (adjust according to your Firestore structure)
-          const attendeesSnapshot = await getDocs(collection(db, "attendees"));
-          const attendeesList = attendeesSnapshot.docs.map((doc) => doc.data());
-          setAttendees(attendeesList);
+          // Fetch attendees for the events created by the current user
+          const attendeesRef = collection(db, "attendees");
+          const attendeesSnapshot = await getDocs(attendeesRef);
+          const attendeesList = attendeesSnapshot.docs
+            .map((doc) => doc.data())
+            .filter((attendee) =>
+              eventsList.some((event) => event.id === attendee.eventId)
+            );
+
+          // Group attendees by eventId
+          const attendeesByEvent = {};
+          attendeesList.forEach((attendee) => {
+            if (attendee.eventId) {
+              const eventId = attendee.eventId;
+              if (!attendeesByEvent[eventId]) {
+                const event = eventsList.find((event) => event.id === eventId);
+                attendeesByEvent[eventId] = {
+                  eventTitle: event ? event.title : "Unknown Event",
+                  imageUrl: event ? event.imageUrl : "/placeholder-image.jpg",
+                  attendees: [],
+                };
+              }
+              attendeesByEvent[eventId].attendees.push(attendee);
+            }
+          });
+
+          setGroupedAttendees(attendeesByEvent);
         } else {
           navigate("/login");
         }
       } catch (error) {
-        if (error.code != "permission-denied") {
+        if (error.code !== "permission-denied") {
           console.error("Error fetching user data:", error);
         }
       } finally {
@@ -92,7 +114,7 @@ export default function Profile() {
     };
 
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
   const handleSaveChanges = async () => {
     try {
@@ -185,7 +207,14 @@ export default function Profile() {
                 <Card key={index}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle>{event.title}</CardTitle>
+                      <CardTitle>
+                        {event.title.replace(
+                          /\w\S*/g,
+                          (text) =>
+                            text.charAt(0).toUpperCase() +
+                            text.substring(1).toLowerCase()
+                        )}
+                      </CardTitle>
                       <div className="flex gap-2">
                         <Button
                           onClick={() => navigate(`/edit-event/${event.id}`)}
@@ -206,10 +235,15 @@ export default function Profile() {
                       </div>
                     </div>
 
-                    <CardDescription>
-                      <span>{event.date}</span>
-                      <br />
+                    <CardDescription className="flex flex-row items-center justify-between">
                       <span>Tickets sold: {event.ticketsSold}</span>
+                      <Button
+                        onClick={() => navigate(`/event-details/${event.id}`)}
+                        variant="outline"
+                        className="mt-2"
+                      >
+                        View Event
+                      </Button>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -221,54 +255,58 @@ export default function Profile() {
                         alt="Event Image"
                         className="aspect-[3/2] object-cover rounded-md"
                       />
-                      <p>{event.description}</p>
+                      <div className="description">{event.description}</div>
                     </div>
                   </CardContent>
-                  <CardFooter>
-                    <Button
-                      onClick={() => navigate(`/event-details/${event.id}`)}
-                      variant="outline"
-                    >
-                      View Event
-                    </Button>
-                  </CardFooter>
+                  <CardFooter></CardFooter>
                 </Card>
               ))}
             </div>
           </TabsContent>
           <TabsContent value="attendees">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {attendees.map((attendee, index) => (
-                <Card key={index}>
+              {Object.entries(groupedAttendees).map(([eventId, eventData]) => (
+                <Card key={eventId}>
                   <CardHeader>
-                    <CardTitle>{attendee.eventTitle}</CardTitle>
-                    <CardDescription>
-                      <span>{attendee.eventDate}</span>
-                    </CardDescription>
+                    <CardTitle>
+                      {eventData.eventTitle.replace(
+                        /\w\S*/g,
+                        (text) =>
+                          text.charAt(0).toUpperCase() +
+                          text.substring(1).toLowerCase()
+                      )}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
+                      {/* Show the event image */}
+                      <img
+                        src={eventData.imageUrl || "/placeholder-image.jpg"}
+                        alt="Event Image"
+                        className="aspect-[3/2] object-cover rounded-md"
+                      />
                       <div className="grid gap-2">
                         <h4 className="font-semibold">Attendee List</h4>
                         <div className="grid gap-2">
-                          {attendee.list.map((person, i) => (
+                          {/* Show attendee information */}
+                          {eventData.attendees.map((attendee, i) => (
                             <div key={i} className="flex items-center gap-4">
                               <Avatar>
                                 <AvatarImage
                                   src={
-                                    person.photoURL || "/placeholder-user.jpg"
+                                    attendee.photoURL || "/placeholder-user.jpg"
                                   }
                                 />
                                 <AvatarFallback>
-                                  {person.displayName?.charAt(0) || "U"}
+                                  {attendee.name.charAt(0)}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <div className="font-medium">
-                                  {person.displayName}
+                                  {attendee.name}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  {person.email}
+                                  {attendee.email}
                                 </div>
                               </div>
                             </div>
@@ -284,6 +322,7 @@ export default function Profile() {
               ))}
             </div>
           </TabsContent>
+
           <TabsContent value="settings">
             <Card>
               <CardHeader>
@@ -363,8 +402,10 @@ export default function Profile() {
           <div className="bg-white p-8 rounded-lg">
             <h2 className="text-xl font-semibold">Delete Event</h2>
             <p>Are you sure you want to delete your event?</p>
-            <Button onClick={handleDeleteEvent}>Delete event</Button>
-            <Button onClick={() => setShowDeleteModal(false)}>Close</Button>
+            <div className="flex gap-4 mt-4">
+              <Button onClick={handleDeleteEvent}>Delete event</Button>
+              <Button onClick={() => setShowDeleteModal(false)}>Close</Button>
+            </div>
           </div>
         </div>
       )}

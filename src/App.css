@@ -13,3 +13,7 @@ body {
 .no-overflow-x {
   overflow-x: hidden;
 }
+
+.description {
+  white-space: pre-wrap; /* Preserves whitespace and line breaks */
+}
