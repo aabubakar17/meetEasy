@@ -36,6 +36,7 @@ export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [events, setEvents] = useState([]);
   const [attendees, setAttendees] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]); // New state for registered events
   const [loading, setLoading] = useState(true);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
@@ -44,7 +45,6 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [groupedAttendees, setGroupedAttendees] = useState({});
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,6 +101,29 @@ export default function Profile() {
           });
 
           setGroupedAttendees(attendeesByEvent);
+
+          const attendeesRegRef = collection(db, "attendees");
+          const q = query(attendeesRegRef, where("email", "==", user.email)); // Query attendees by the user's email
+          const attendeesRegSnapshot = await getDocs(q);
+          const registeredEventIds = attendeesRegSnapshot.docs.map(
+            (doc) => doc.data().eventId
+          );
+          console.log("Registered event IDs:", registeredEventIds);
+
+          // Fetch details for registered events
+          const eventsRegRef = collection(db, "events");
+          const eventsRegQuery = query(
+            eventsRegRef,
+            where("__name__", "in", registeredEventIds)
+          );
+          const eventsRegSnapshot = await getDocs(eventsRegQuery);
+
+          const registeredEventsList = eventsRegSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          console.log("Registered events:", registeredEventsList);
+          setRegisteredEvents(registeredEventsList);
         } else {
           navigate("/login");
         }
@@ -185,84 +208,104 @@ export default function Profile() {
         </div>
       </header>
       <main className="flex-1 py-8 px-4 md:px-6">
-        <Tabs defaultValue="events" className="w-full">
+        <Tabs
+          defaultValue={
+            userData?.role == "Event Creator" ? "events" : "registered-events"
+          }
+          className="w-full"
+        >
           <div className="flex flex-col items-center md:flex-row justify-normal mb-4">
             {/* Tabs List */}
-            <TabsList className="border-b">
-              <TabsTrigger value="events">Events</TabsTrigger>
-              <TabsTrigger value="attendees">Attendees</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
+            {userData?.role === "Event Creator" && (
+              <TabsList className="border-b">
+                <TabsTrigger value="events">Events</TabsTrigger>
+                <TabsTrigger value="attendees">Attendees</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+            )}
 
-            {/* Button aligned to the right */}
-            <Link to="/create-event">
-              <Button className="ml-4 mt-2 imd:m-0 bg-black py-2">
-                Create Events +{" "}
-              </Button>
-            </Link>
+            {userData?.role === "Event Creator" && (
+              <Link to="/create-event">
+                <Button className="ml-4 mt-2 imd:m-0 bg-black py-2">
+                  Create Events +{" "}
+                </Button>
+              </Link>
+            )}
+
+            {userData?.role === "Event Attendee" && (
+              <TabsList className="border-b">
+                <TabsTrigger value="registered-events">
+                  Registered Events
+                </TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+            )}
           </div>
-          <TabsContent value="events">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {events.map((event, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>
-                        {event.title.replace(
-                          /\w\S*/g,
-                          (text) =>
-                            text.charAt(0).toUpperCase() +
-                            text.substring(1).toLowerCase()
-                        )}
-                      </CardTitle>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => navigate(`/edit-event/${event.id}`)}
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                        >
-                          <FaEdit />
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteEventModal(event.id)}
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+          {userData?.role === "Event Creator" && (
+            <TabsContent value="events">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {events.map((event, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>
+                          {event.title.replace(
+                            /\w\S*/g,
+                            (text) =>
+                              text.charAt(0).toUpperCase() +
+                              text.substring(1).toLowerCase()
+                          )}
+                        </CardTitle>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => navigate(`/edit-event/${event.id}`)}
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                          >
+                            <FaEdit />
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteEventModal(event.id)}
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
 
-                    <CardDescription className="flex flex-row items-center justify-between">
-                      <span>Tickets sold: {event.ticketsSold}</span>
-                      <Button
-                        onClick={() => navigate(`/event-details/${event.id}`)}
-                        variant="outline"
-                        className="mt-2"
-                      >
-                        View Event
-                      </Button>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4">
-                      <img
-                        src={event.imageUrl || "/placeholder-image.jpg"}
-                        width={600}
-                        height={400}
-                        alt="Event Image"
-                        className="aspect-[3/2] object-cover rounded-md"
-                      />
-                      <div className="description">{event.description}</div>
-                    </div>
-                  </CardContent>
-                  <CardFooter></CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                      <CardDescription className="flex flex-row items-center justify-between">
+                        <span>Tickets sold: {event.ticketsSold}</span>
+                        <Button
+                          onClick={() => navigate(`/event-details/${event.id}`)}
+                          variant="outline"
+                          className="mt-2 text-black"
+                        >
+                          View Event
+                        </Button>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4">
+                        <img
+                          src={event.imageUrl || "/placeholder-image.jpg"}
+                          width={600}
+                          height={400}
+                          alt="Event Image"
+                          className="aspect-[3/2] object-cover rounded-md"
+                        />
+                        <div className="description">{event.description}</div>
+                      </div>
+                    </CardContent>
+                    <CardFooter></CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          )}
+
           <TabsContent value="attendees">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {Object.entries(groupedAttendees).map(([eventId, eventData]) => (
@@ -363,9 +406,6 @@ export default function Profile() {
                       <SelectItem value="Event Creator">
                         Event Creator
                       </SelectItem>
-                      <SelectItem value="Event Organiser">
-                        Event Organizer
-                      </SelectItem>
                       <SelectItem value="Event Attendee">
                         Event Attendee
                       </SelectItem>
@@ -395,6 +435,51 @@ export default function Profile() {
               </div>
             )}
           </TabsContent>
+          {userData?.role === "Event Attendee" && (
+            <TabsContent value="registered-events">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {registeredEvents.length === 0 ? (
+                  <p>No registered events found.</p>
+                ) : (
+                  registeredEvents.map((event) => (
+                    <Card key={event.id}>
+                      <CardHeader>
+                        <CardTitle>
+                          {event.title.replace(
+                            /\w\S*/g,
+                            (text) =>
+                              text.charAt(0).toUpperCase() +
+                              text.substring(1).toLowerCase()
+                          )}
+                        </CardTitle>
+                        <CardContent>
+                          <img
+                            src={event.imageUrl || "/placeholder-image.jpg"}
+                            alt="Event"
+                            className="aspect-[3/2] object-cover rounded-md"
+                          />
+                        </CardContent>
+                        <CardDescription>
+                          <span className="description">
+                            {event.description}
+                          </span>
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardFooter>
+                        <Button
+                          onClick={() => navigate(`/event-details/${event.id}`)}
+                          variant="outline"
+                        >
+                          View Event
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </main>
       {showDeleteModal && (

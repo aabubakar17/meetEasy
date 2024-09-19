@@ -5,11 +5,17 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EventRegistration from "./EventRegistration";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { auth, db } from "../config/firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const EventDetails = () => {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -17,7 +23,31 @@ const EventDetails = () => {
       setEvent(data);
     };
 
+    const user = auth.currentUser;
+    console.log("User:", user);
+
+    const checkRegistration = async () => {
+      try {
+        const attendeesRef = collection(db, "attendees");
+        const q = query(
+          attendeesRef,
+          where("eventId", "==", eventId),
+          where("email", "==", user.email)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          console.log("Already registered for this event");
+          setIsRegistered(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking registration status:", error);
+      }
+    };
+
     fetchEventDetails();
+    checkRegistration();
   }, [eventId]);
 
   if (!event) {
@@ -122,6 +152,7 @@ const EventDetails = () => {
                 <Button
                   onClick={() => setShowModal(true)} // Fix typo in onClick
                   className="bg-black text-white"
+                  disabled={isRegistered}
                 >
                   Get Tickets
                 </Button>
@@ -168,10 +199,14 @@ const EventDetails = () => {
           </div>
 
           {showModal && (
-            <EventRegistration
-              event={event}
-              onClose={() => setShowModal(false)}
-            />
+            <Elements stripe={stripePromise}>
+              <EventRegistration
+                event={event}
+                onClose={() => setShowModal(false)}
+                setIsRegistered={setIsRegistered}
+                isRegistered={isRegistered}
+              />
+            </Elements>
           )}
         </div>
       </div>

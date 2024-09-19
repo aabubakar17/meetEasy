@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarIcon, ClockIcon, MapPinIcon, XIcon } from "lucide-react"; // Import the close icon
 import { Button } from "@/components/ui/button";
 import {
@@ -31,21 +31,83 @@ import {
 import { db } from "../config/firebase";
 import { useParams } from "react-router-dom";
 import { sendRegistrationEmail, addEventToGoogleCalendar } from "../lib/utils";
+import { FcGoogle } from "react-icons/fc";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 
-export default function EventRegistration({ event, onClose }) {
-  const [isRegistered, setIsRegistered] = useState(false);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+export default function EventRegistration({
+  event,
+  onClose,
+  isRegistered,
+  setIsRegistered,
+}) {
   const { eventId } = useParams();
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [alert, setAlert] = useState(false);
+  const [isAddedToGoogleCalendar, setIsAddedToGoogleCalendar] = useState(false);
+  const [clientSecret, setClientSecret] = useState("");
+  const stripe = useStripe();
+  const elements = useElements();
 
   const isFree = event.ticketTypes?.[0]?.price === "0";
   const ticketPrice = !isFree ? parseFloat(event.ticketTypes?.[0]?.price) : 0;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (!isFree && ticketQuantity > 0) {
+      const fetchClientSecret = async () => {
+        try {
+          const response = await fetch(
+            "http://localhost:5000/create-payment-intent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                amount: Math.round(ticketPrice * ticketQuantity * 100), // Convert to cents
+              }),
+            }
+          );
 
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const responseText = await response.text();
+          console.log("Raw response:", responseText); // Log raw response for debugging
+
+          try {
+            const { clientSecret } = JSON.parse(responseText);
+            if (!clientSecret || !clientSecret.startsWith("pi_")) {
+              throw new Error("Invalid client secret received from server");
+            }
+            setClientSecret(clientSecret);
+          } catch (jsonError) {
+            throw new Error(
+              "Error parsing JSON response: " + jsonError.message
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching client secret:", error);
+        }
+      };
+      fetchClientSecret();
+    }
+  }, [ticketQuantity, ticketPrice, isFree]);
+
+  const handleSubmit = async (e) => {
+    if (e) {
+      e.preventDefault();
+    }
     try {
       // Check if the email is already registered for this event
       const attendeesRef = collection(db, "attendees");
@@ -57,6 +119,7 @@ export default function EventRegistration({ event, onClose }) {
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
+        console.log("Already registered for this event");
         setAlert(true);
         return;
       }
@@ -78,36 +141,7 @@ export default function EventRegistration({ event, onClose }) {
         tickets: ticketQuantity,
       });
 
-      // Prepare event details for Google Calendar
-      const eventDetails = {
-        summary: event.title,
-        location: event.location || "",
-        description: event.description || "",
-        start: {
-          // Combine the event date and time
-          dateTime: (() => {
-            const eventDate = new Date(event.eventDate.seconds * 1000); // Get the date
-            const [hours, minutes] = event.eventTime.split(":"); // Extract hours and minutes
-            eventDate.setHours(hours, minutes); // Set the event time
-            return eventDate.toISOString();
-          })(),
-          timeZone: "Europe/London", // Valid IANA time zone
-        },
-        end: {
-          // Set the end time to 1 hour after the start time
-          dateTime: (() => {
-            const eventDate = new Date(event.eventDate.seconds * 1000); // Get the date
-            const [hours, minutes] = event.eventTime.split(":"); // Extract hours and minutes
-            eventDate.setHours(hours, minutes); // Set the event time
-            eventDate.setHours(eventDate.getHours() + 1); // Add 1 hour to create the end time
-            return eventDate.toISOString();
-          })(),
-          timeZone: "Europe/London", // Valid IANA time zone
-        },
-      };
-
       // Add the event to Google Calendar
-      await addEventToGoogleCalendar(eventDetails);
       sendRegistrationEmail(email, event);
 
       setIsRegistered(true);
@@ -116,29 +150,155 @@ export default function EventRegistration({ event, onClose }) {
     }
   };
 
+  const handleAddEventToGoogleCalendar = () => {
+    // Prepare event details for Google Calendar
+    const eventDetails = {
+      summary: event.title,
+      location: event.location || "",
+      description: event.description || "",
+      start: {
+        // Combine the event date and time
+        dateTime: (() => {
+          const eventDate = new Date(event.eventDate.seconds * 1000); // Get the date
+          const [hours, minutes] = event.eventTime.split(":"); // Extract hours and minutes
+          eventDate.setHours(hours, minutes); // Set the event time
+          return eventDate.toISOString();
+        })(),
+        timeZone: "Europe/London", // Valid IANA time zone
+      },
+      end: {
+        // Set the end time to 1 hour after the start time
+        dateTime: (() => {
+          const eventDate = new Date(event.eventDate.seconds * 1000); // Get the date
+          const [hours, minutes] = event.eventTime.split(":"); // Extract hours and minutes
+          eventDate.setHours(hours, minutes); // Set the event time
+          eventDate.setHours(eventDate.getHours() + 1); // Add 1 hour to create the end time
+          return eventDate.toISOString();
+        })(),
+        timeZone: "Europe/London", // Valid IANA time zone
+      },
+    };
+    addEventToGoogleCalendar(eventDetails);
+    setIsAddedToGoogleCalendar(true);
+  };
+
+  const makePayment = async (event) => {
+    event.preventDefault();
+    const attendeesRef = collection(db, "attendees");
+    const q = query(
+      attendeesRef,
+      where("eventId", "==", eventId),
+      where("email", "==", email)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      console.log("Already registered for this event");
+      setAlert(true);
+      return;
+    }
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+
+    if (!alert) {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name,
+              email,
+            },
+          },
+        }
+      );
+      if (error) {
+        console.error("Payment error:", error.message);
+      } else if (paymentIntent.status === "succeeded") {
+        console.log("Payment succeeded!");
+        // Proceed with registration after successful payment
+        handleSubmit();
+        setIsRegistered(true);
+      }
+    }
+  };
+
+  if (isAddedToGoogleCalendar) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="relative bg-white p-8 rounded-lg">
+          <button
+            className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
+            onClick={onClose}
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+          <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Event has been added to your calendar</CardTitle>
+              <CardDescription>
+                Thank you for registering for {event.name || event.title} on{" "}
+                {new Date(event.eventDate.seconds * 1000).toLocaleDateString()}!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>
+                We've added the event to your Google Calendar. You can view the
+                event details in your calendar.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (isRegistered) {
     return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle>Registration Confirmed</CardTitle>
-          <CardDescription>
-            Thank you for registering for {event.name || event.title}!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>
-            We've sent a confirmation email with event details to your
-            registered email address.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="relative bg-white p-8 rounded-lg">
+          <button
+            className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
+            onClick={onClose}
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+          <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Registration Confirmed</CardTitle>
+              <CardDescription>
+                Thank you for registering for {event.name || event.title}!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>
+                We've sent a confirmation email with event details to your
+                registered email address.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button
+                onClick={handleAddEventToGoogleCalendar}
+                className="w-full"
+                variant="outline"
+              >
+                Add Event to Google Calendar &nbsp; <FcGoogle size={32} />
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="relative bg-white p-8 rounded-lg">
-        {/* Close Icon Button */}
         <button
           className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
           onClick={onClose}
@@ -152,7 +312,10 @@ export default function EventRegistration({ event, onClose }) {
             <CardDescription>Register for this exciting event!</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={isFree ? handleSubmit : makePayment}
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <CalendarIcon className="w-4 h-4 text-muted-foreground" />
@@ -224,6 +387,12 @@ export default function EventRegistration({ event, onClose }) {
                   Total: £{(ticketPrice * ticketQuantity).toFixed(2)}
                 </div>
               )}
+              {!isFree && (
+                <div className="space-y-2">
+                  <Label htmlFor="card">Card Details</Label>
+                  <CardElement id="card" options={{ hidePostalCode: true }} />
+                </div>
+              )}
               <Button type="submit" className="w-full">
                 {isFree ? "Register" : "Purchase Tickets"}
               </Button>
@@ -240,3 +409,11 @@ export default function EventRegistration({ event, onClose }) {
     </div>
   );
 }
+
+const StripeWrapper = ({ event, onClose }) => (
+  <Elements stripe={stripePromise}>
+    <EventRegistration event={event} onClose={onClose} />
+  </Elements>
+);
+
+export { StripeWrapper };
