@@ -39,6 +39,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -55,6 +56,7 @@ export default function EventRegistration({
   const [alert, setAlert] = useState(false);
   const [isAddedToGoogleCalendar, setIsAddedToGoogleCalendar] = useState(false);
   const [clientSecret, setClientSecret] = useState("");
+  const [loading, setLoading] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
 
@@ -64,9 +66,10 @@ export default function EventRegistration({
   useEffect(() => {
     if (!isFree && ticketQuantity > 0) {
       const fetchClientSecret = async () => {
+        setLoading(true); // Set loading to true before fetching
         try {
           const response = await fetch(
-            "http://localhost:5000/create-payment-intent",
+            "https://meeteasy-xl05.onrender.com/create-payment-intent",
             {
               method: "POST",
               headers: {
@@ -98,6 +101,8 @@ export default function EventRegistration({
           }
         } catch (error) {
           console.error("Error fetching client secret:", error);
+        } finally {
+          setLoading(false); // Set loading to false after fetching
         }
       };
       fetchClientSecret();
@@ -241,15 +246,18 @@ export default function EventRegistration({
           <Card className="w-full max-w-md mx-auto">
             <CardHeader>
               <CardTitle>Event has been added to your calendar</CardTitle>
+              <CardTitle className="my-2"></CardTitle>
               <CardDescription>
                 Thank you for registering for {event.name || event.title} on{" "}
                 {new Date(event.eventDate.seconds * 1000).toLocaleDateString()}!
+                <br />
+                Check your profile to see event details
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p>
                 We've added the event to your Google Calendar. You can view the
-                event details in your calendar.
+                event details in your Google Calendar.
               </p>
             </CardContent>
           </Card>
@@ -306,100 +314,115 @@ export default function EventRegistration({
           <XIcon className="w-5 h-5" />
         </button>
 
-        <Card className="w-full max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>{event.name || event.title}</CardTitle>
-            <CardDescription>Register for this exciting event!</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={isFree ? handleSubmit : makePayment}
-              className="space-y-4"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                  <span>
-                    {event.eventDate
-                      ? typeof event.eventDate.seconds === "number"
-                        ? new Date(
-                            event.eventDate.seconds * 1000
-                          ).toLocaleDateString()
-                        : new Date(event.eventDate).toLocaleDateString()
-                      : "TBD"}
-                  </span>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <ClockIcon className="w-4 h-4 text-muted-foreground" />
-                  <span>
-                    {event.dates?.start?.localTime
-                      ? ` ${event.dates.start.localTime.substring(0, 5)}`
-                      : event.eventTime
-                      ? ` ${event.eventTime}`
-                      : ""}
-                  </span>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <MapPinIcon className="w-4 h-4 text-muted-foreground" />
-                  <span>{event.location || "Location not provided"}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input onChange={(e) => setName(e.target.value)} id="name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  onChange={(e) => setEmail(e.target.value)}
-                  id="email"
-                  type="email"
-                />
-              </div>
-
-              {!isFree && (
+        {loading ? (
+          <div className="flex justify-center items-center">
+            <ClipLoader
+              color="#000"
+              loading={loading}
+              size={150}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+          </div>
+        ) : (
+          <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>{event.name || event.title}</CardTitle>
+              <CardDescription>
+                Register for this exciting event!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={isFree ? handleSubmit : makePayment}
+                className="space-y-4"
+              >
                 <div className="space-y-2">
-                  <Label htmlFor="tickets">Number of Tickets</Label>
-                  <Select
-                    value={ticketQuantity.toString()}
-                    onValueChange={(value) =>
-                      setTicketQuantity(parseInt(value))
-                    }
-                  >
-                    <SelectTrigger id="tickets">
-                      <SelectValue placeholder="Select quantity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center space-x-2">
+                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    <span>
+                      {event.eventDate
+                        ? typeof event.eventDate.seconds === "number"
+                          ? new Date(
+                              event.eventDate.seconds * 1000
+                            ).toLocaleDateString()
+                          : new Date(event.eventDate).toLocaleDateString()
+                        : "TBD"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <ClockIcon className="w-4 h-4 text-muted-foreground" />
+                    <span>
+                      {event.dates?.start?.localTime
+                        ? ` ${event.dates.start.localTime.substring(0, 5)}`
+                        : event.eventTime
+                        ? ` ${event.eventTime}`
+                        : ""}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <MapPinIcon className="w-4 h-4 text-muted-foreground" />
+                    <span>{event.location || "Location not provided"}</span>
+                  </div>
                 </div>
-              )}
-              {!isFree && (
-                <div className="mb-4 text-lg font-semibold">
-                  Total: £{(ticketPrice * ticketQuantity).toFixed(2)}
-                </div>
-              )}
-              {!isFree && (
+
                 <div className="space-y-2">
-                  <Label htmlFor="card">Card Details</Label>
-                  <CardElement id="card" options={{ hidePostalCode: true }} />
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input onChange={(e) => setName(e.target.value)} id="name" />
                 </div>
-              )}
-              <Button type="submit" className="w-full">
-                {isFree ? "Register" : "Purchase Tickets"}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col items-stretch"></CardFooter>
-        </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    onChange={(e) => setEmail(e.target.value)}
+                    id="email"
+                    type="email"
+                  />
+                </div>
+
+                {!isFree && (
+                  <div className="space-y-2">
+                    <Label htmlFor="tickets">Number of Tickets</Label>
+                    <Select
+                      value={ticketQuantity.toString()}
+                      onValueChange={(value) =>
+                        setTicketQuantity(parseInt(value))
+                      }
+                    >
+                      <SelectTrigger id="tickets">
+                        <SelectValue placeholder="Select quantity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5].map((num) => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {!isFree && (
+                  <div className="mb-4 text-lg font-semibold">
+                    Total: £{(ticketPrice * ticketQuantity).toFixed(2)}
+                  </div>
+                )}
+                {!isFree && (
+                  <div className="space-y-2">
+                    <Label htmlFor="card">Card Details</Label>
+                    <CardElement id="card" options={{ hidePostalCode: true }} />
+                  </div>
+                )}
+                <Button type="submit" className="w-full">
+                  {isFree ? "Register" : "Purchase Tickets"}
+                </Button>
+              </form>
+            </CardContent>
+            <CardFooter className="flex flex-col items-stretch"></CardFooter>
+          </Card>
+        )}
+
         {alert && (
           <div className="absolute bottom-0 left-0 right-0 bg-red-500 text-white p-2 text-center rounded-lg">
             You are already registered for this event

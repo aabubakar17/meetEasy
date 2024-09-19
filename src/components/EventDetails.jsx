@@ -27,22 +27,24 @@ const EventDetails = () => {
     console.log("User:", user);
 
     const checkRegistration = async () => {
-      try {
-        const attendeesRef = collection(db, "attendees");
-        const q = query(
-          attendeesRef,
-          where("eventId", "==", eventId),
-          where("email", "==", user.email)
-        );
-        const querySnapshot = await getDocs(q);
+      if (user) {
+        try {
+          const attendeesRef = collection(db, "attendees");
+          const q = query(
+            attendeesRef,
+            where("eventId", "==", eventId),
+            where("email", "==", user?.email)
+          );
+          const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-          console.log("Already registered for this event");
-          setIsRegistered(true);
-          return;
+          if (!querySnapshot.empty) {
+            console.log("Already registered for this event");
+            setIsRegistered(true);
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking registration status:", error);
         }
-      } catch (error) {
-        console.error("Error checking registration status:", error);
       }
     };
 
