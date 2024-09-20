@@ -32,6 +32,7 @@ import {
 import { FaEdit } from "react-icons/fa";
 import { X } from "lucide-react";
 import { deleteDoc, query, where } from "firebase/firestore";
+import { set } from "date-fns";
 export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [events, setEvents] = useState([]);
@@ -102,6 +103,8 @@ export default function Profile() {
 
           setGroupedAttendees(attendeesByEvent);
 
+          // Fetch registered events for the current user
+
           const attendeesRegRef = collection(db, "attendees");
           const q = query(attendeesRegRef, where("email", "==", user.email)); // Query attendees by the user's email
           const attendeesRegSnapshot = await getDocs(q);
@@ -110,20 +113,24 @@ export default function Profile() {
           );
           console.log("Registered event IDs:", registeredEventIds);
 
-          // Fetch details for registered events
-          const eventsRegRef = collection(db, "events");
-          const eventsRegQuery = query(
-            eventsRegRef,
-            where("__name__", "in", registeredEventIds)
-          );
-          const eventsRegSnapshot = await getDocs(eventsRegQuery);
+          if (registeredEventIds.length !== 0) {
+            // Fetch details for registered events
+            const eventsRegRef = collection(db, "events");
+            const eventsRegQuery = query(
+              eventsRegRef,
+              where("__name__", "in", registeredEventIds)
+            );
+            const eventsRegSnapshot = await getDocs(eventsRegQuery);
 
-          const registeredEventsList = eventsRegSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          console.log("Registered events:", registeredEventsList);
-          setRegisteredEvents(registeredEventsList);
+            const registeredEventsList = eventsRegSnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            console.log("Registered events:", registeredEventsList);
+            setRegisteredEvents(registeredEventsList);
+          } else {
+            setRegisteredEvents([]);
+          }
         } else {
           navigate("/login");
         }

@@ -59,9 +59,38 @@ export default function EventRegistration({
   const [loading, setLoading] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+  });
 
   const isFree = event.ticketTypes?.[0]?.price === "0";
   const ticketPrice = !isFree ? parseFloat(event.ticketTypes?.[0]?.price) : 0;
+
+  const validateForm = () => {
+    let valid = true;
+    let fullNameError = "";
+    let emailError = "";
+
+    if (!name) {
+      fullNameError = "Full Name is required.";
+      valid = false;
+    }
+
+    if (!email) {
+      emailError = "Email is required.";
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      emailError = "Please enter a valid email address.";
+      valid = false;
+    }
+
+    setErrors({
+      fullName: fullNameError,
+      email: emailError,
+    });
+    return valid;
+  };
 
   useEffect(() => {
     if (!isFree && ticketQuantity > 0) {
@@ -113,45 +142,47 @@ export default function EventRegistration({
     if (e) {
       e.preventDefault();
     }
-    try {
-      // Check if the email is already registered for this event
-      const attendeesRef = collection(db, "attendees");
-      const q = query(
-        attendeesRef,
-        where("eventId", "==", eventId),
-        where("email", "==", email)
-      );
-      const querySnapshot = await getDocs(q);
+    if (!validateForm()) {
+      try {
+        // Check if the email is already registered for this event
+        const attendeesRef = collection(db, "attendees");
+        const q = query(
+          attendeesRef,
+          where("eventId", "==", eventId),
+          where("email", "==", email)
+        );
+        const querySnapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        console.log("Already registered for this event");
-        setAlert(true);
-        return;
+        if (!querySnapshot.empty) {
+          console.log("Already registered for this event");
+          setAlert(true);
+          return;
+        }
+
+        // Update ticketsSold field in the events collection
+        const eventRef = doc(db, "events", eventId);
+        await updateDoc(eventRef, {
+          ticketsSold: increment(ticketQuantity), // Increment by the number of tickets
+        });
+
+        // Add attendee information
+        await addDoc(attendeesRef, {
+          name,
+          email,
+          eventId,
+          eventTitle: event.title,
+          eventDate: event.eventDate,
+          imageUrl: event.imageUrl,
+          tickets: ticketQuantity,
+        });
+
+        // Add the event to Google Calendar
+        sendRegistrationEmail(email, event);
+
+        setIsRegistered(true);
+      } catch (error) {
+        console.error("Error adding document: ", error);
       }
-
-      // Update ticketsSold field in the events collection
-      const eventRef = doc(db, "events", eventId);
-      await updateDoc(eventRef, {
-        ticketsSold: increment(ticketQuantity), // Increment by the number of tickets
-      });
-
-      // Add attendee information
-      await addDoc(attendeesRef, {
-        name,
-        email,
-        eventId,
-        eventTitle: event.title,
-        eventDate: event.eventDate,
-        imageUrl: event.imageUrl,
-        tickets: ticketQuantity,
-      });
-
-      // Add the event to Google Calendar
-      sendRegistrationEmail(email, event);
-
-      setIsRegistered(true);
-    } catch (error) {
-      console.error("Error adding document: ", error);
     }
   };
 
@@ -189,6 +220,7 @@ export default function EventRegistration({
 
   const makePayment = async (event) => {
     event.preventDefault();
+    validateForm();
     const attendeesRef = collection(db, "attendees");
     const q = query(
       attendeesRef,
@@ -370,7 +402,14 @@ export default function EventRegistration({
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input onChange={(e) => setName(e.target.value)} id="name" />
+                  <Input
+                    onChange={(e) => setName(e.target.value)}
+                    id="name"
+                    className={errors.fullName ? "border-red-500" : ""}
+                  />
+                  {errors.fullName && (
+                    <p className="text-red-500 text-sm">{errors.fullName}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -378,7 +417,11 @@ export default function EventRegistration({
                     onChange={(e) => setEmail(e.target.value)}
                     id="email"
                     type="email"
+                    className={errors.email ? "border-red-500" : ""}
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm">{errors.email}</p>
+                  )}
                 </div>
 
                 {!isFree && (

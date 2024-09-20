@@ -100,7 +100,7 @@ const Login = ({ setLoggedIn }) => {
           displayName: user.displayName || "",
           email: user.email,
           photoURL: user.photoURL || "",
-          role: "user", // Default role
+          role: "Event Attendee", // Default role
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp(),
         });
