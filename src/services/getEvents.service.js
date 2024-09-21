@@ -91,25 +91,20 @@ const fetchFirestoreEventDetails = async (eventId) => {
 
 export const fetchEventDetailsById = async (eventId) => {
   try {
-    // Attempt to fetch from Ticketmaster API
-    const ticketmasterData = await fetchTicketmasterEventDetails(eventId);
-    if (ticketmasterData) {
-      return ticketmasterData;
-    }
-  } catch (error) {
-    console.warn("Ticketmaster fetch failed, trying Firestore...");
-  }
+    // Check Firebase first
+    const eventRef = doc(db, "events", eventId);
+    const eventDoc = await getDoc(eventRef);
 
-  try {
-    // If Ticketmaster fetch fails or returns no data, attempt to fetch from Firestore
-    const firestoreData = await fetchFirestoreEventDetails(eventId);
-    if (firestoreData) {
-      return firestoreData;
+    // If the event is found in Firebase, return it
+    if (eventDoc.exists()) {
+      return { ...eventDoc.data(), id: eventDoc.id };
     }
-  } catch (error) {
-    console.error("Firestore fetch failed:", error);
-  }
 
-  // Return null if no data is found in both sources
-  return null;
+    // If not found in Firebase, check Ticketmaster API
+    const ticketmasterEvent = await fetchTicketmasterEventDetails(eventId);
+    return ticketmasterEvent;
+  } catch (error) {
+    console.error("Error fetching event details:", error);
+    throw error;
+  }
 };

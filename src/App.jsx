@@ -44,7 +44,7 @@ function App() {
   }
 
   return (
-    <div className="bg-gray-100">
+    <div className="bg-[#f9f7f0]">
       {!isLoginPage && !isSignUpPage && (
         <Navbar loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       )}

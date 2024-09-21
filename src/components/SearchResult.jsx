@@ -31,41 +31,52 @@ const SearchResult = () => {
       const eventsRef = collection(db, "events");
       let userEvents = [];
 
-      // Query for Firestore user events by location
-      if (locationSearch) {
-        const locationQuery = query(
-          eventsRef,
-          where("location", "==", locationSearch.toLowerCase())
-        );
-        const locationSnapshot = await getDocs(locationQuery);
-        const locationEvents = locationSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        userEvents = [...userEvents, ...locationEvents];
+      // Handle multiple word search for Firestore events
+      const searchKeywords = eventSearch
+        .split(" ")
+        .map((word) => word.toLowerCase());
+
+      if (searchKeywords.length > 0) {
+        for (const keyword of searchKeywords) {
+          const keywordQuery = query(
+            eventsRef,
+            where("titleKeywords", "array-contains", keyword)
+          );
+          const keywordSnapshot = await getDocs(keywordQuery);
+          const keywordEvents = keywordSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          userEvents = [...userEvents, ...keywordEvents];
+        }
       }
 
-      // Query for Firestore user events by titleKeywords
-      if (eventSearch) {
-        const keywordQuery = query(
-          eventsRef,
-          where("titleKeywords", "array-contains", eventSearch.toLowerCase())
-        );
-        const keywordSnapshot = await getDocs(keywordQuery);
-        const keywordEvents = keywordSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        userEvents = [...userEvents, ...keywordEvents];
-      }
-
-      // Remove duplicates based on event ID
-      const uniqueUserEvents = Array.from(
-        new Map(userEvents.map((event) => [event.id, event])).values()
-      );
+      // Deduplicate user events based on event ID and name
+      const seenEvents = new Set();
+      const uniqueUserEvents = userEvents.filter((event) => {
+        const eventKey = `${event.id}-${event.name?.toLowerCase()}`;
+        if (seenEvents.has(eventKey)) {
+          return false; // Already seen, filter out
+        } else {
+          seenEvents.add(eventKey); // Mark as seen
+          return true; // Keep the event
+        }
+      });
 
       // Merge external events and Firestore user events
-      const mergedEvents = [...uniqueUserEvents, ...(externalEvents || [])];
+      const allEvents = [...uniqueUserEvents, ...(externalEvents || [])];
+
+      // Deduplicate merged events
+      const mergedSeenEvents = new Set();
+      const mergedEvents = allEvents.filter((event) => {
+        const eventKey = `${event.id}-${event.name?.toLowerCase()}`;
+        if (mergedSeenEvents.has(eventKey)) {
+          return false; // Already seen in merged, filter out
+        } else {
+          mergedSeenEvents.add(eventKey); // Mark as seen
+          return true; // Keep the event
+        }
+      });
 
       setSearchResults(mergedEvents);
     };

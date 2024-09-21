@@ -142,7 +142,7 @@ export default function EventRegistration({
     if (e) {
       e.preventDefault();
     }
-    if (!validateForm()) {
+    if (validateForm()) {
       try {
         // Check if the email is already registered for this event
         const attendeesRef = collection(db, "attendees");
@@ -183,6 +183,8 @@ export default function EventRegistration({
       } catch (error) {
         console.error("Error adding document: ", error);
       }
+    } else {
+      return;
     }
   };
 
@@ -220,7 +222,7 @@ export default function EventRegistration({
 
   const makePayment = async (event) => {
     event.preventDefault();
-    validateForm();
+    if (!validateForm()) return;
     const attendeesRef = collection(db, "attendees");
     const q = query(
       attendeesRef,
