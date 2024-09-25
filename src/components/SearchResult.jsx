@@ -93,7 +93,10 @@ const SearchResult = () => {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {searchResults.length > 0 ? (
           searchResults.map((event) => (
-            <Card key={event.id} className="shadow-md">
+            <Card
+              key={event.id}
+              className="bg-neutral-700 rounded-lg shadow-lg"
+            >
               <CardHeader className="flex flex-col items-start">
                 <img
                   src={
@@ -104,10 +107,10 @@ const SearchResult = () => {
                   alt={event.name || event.title}
                   className="w-full h-48 object-cover mb-4"
                 />
-                <h2 className="text-xl font-semibold">
+                <h2 className=" text-orange-50 text-xl font-semibold">
                   {event.name || event.title}
                 </h2>
-                <span className="text-gray-500 text-sm">
+                <span className="text-orange-50 text-sm">
                   {(() => {
                     let eventDate;
                     if (event.dates?.start?.localDate) {
@@ -130,9 +133,14 @@ const SearchResult = () => {
               </CardHeader>
 
               <CardFooter className="flex justify-between items-center">
-                <span>{event._embedded?.venues?.[0]?.name || event.venue}</span>
+                <span className="text-orange-50">
+                  {event._embedded?.venues?.[0]?.name || event.venue}
+                </span>
 
-                <Button onClick={() => navigate(`/event-details/${event.id}`)}>
+                <Button
+                  className="bg-gray-200 text-neutral-700 hover:bg-neutral-400"
+                  onClick={() => navigate(`/event-details/${event.id}`)}
+                >
                   View Event
                 </Button>
               </CardFooter>

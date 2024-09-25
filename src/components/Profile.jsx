@@ -33,6 +33,7 @@ import { FaEdit } from "react-icons/fa";
 import { X } from "lucide-react";
 import { deleteDoc, query, where } from "firebase/firestore";
 import { set } from "date-fns";
+import { ClipLoader } from "react-spinners";
 export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [events, setEvents] = useState([]);
@@ -189,11 +190,22 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex min-h-screen justify-center items-center">
+        <ClipLoader
+          color="#000"
+          loading={loading}
+          size={150}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </div>
+    );
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="bg-white py-6 px-4 md:px-6">
+    <div className="flex flex-col min-h-screen px-4 md:-px-16 no-overflow-x ">
+      <header className="bg-neutral-700 rounded-lg py-6 px-6 md: ">
         <div className="container flex items-center gap-4">
           <Avatar className="h-12 w-12 md:h-16 md:w-16">
             <AvatarImage
@@ -205,16 +217,16 @@ export default function Profile() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold md:text-2xl">
+            <h1 className="text-xl text-orange-50 font-semibold md:text-2xl">
               {userData?.displayName || "John Doe"}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-orange-50 text-muted-foreground">
               {userData?.role || "Event Creator"}
             </p>
           </div>
         </div>
       </header>
-      <main className="flex-1 py-8 px-4 md:px-6">
+      <main className="flex-1 py-8 ">
         <Tabs
           defaultValue={
             userData?.role == "Event Creator" ? "events" : "registered-events"
@@ -233,7 +245,7 @@ export default function Profile() {
 
             {userData?.role === "Event Creator" && (
               <Link to="/create-event">
-                <Button className="ml-4 mt-2 imd:m-0 bg-black py-2">
+                <Button className="ml-4 bg-neutral-700 mt-2 md:mt-0 py-2">
                   Create Events +{" "}
                 </Button>
               </Link>
@@ -429,7 +441,9 @@ export default function Profile() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSaveChanges}>Save Changes</Button>
+                <Button className="bg-neutral-700" onClick={handleSaveChanges}>
+                  Save Changes
+                </Button>
               </CardFooter>
             </Card>
             {showModal && (

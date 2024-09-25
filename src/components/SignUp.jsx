@@ -158,48 +158,53 @@ const SignUp = ({ setLoggedIn }) => {
   return (
     <>
       <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[1100px]">
-        <div className="flex items-center justify-center p-12 ">
+        <div className="flex items-center justify-center p-6">
           <div className="mx-auto grid xl:min-h-[600px] xl:-mt-48 max-w-[800px] gap-6">
             <div className="pt-4">
-              <Link to="/" className="flex items-center">
+              <Link to="/" className="flex items-start">
                 <img
-                  src="https://flowbite.com/docs/images/logo.svg"
-                  className="h-12"
+                  src="meetEasy_logo.png"
+                  className="h-28 w-auto -ml-12"
                   alt="Flowbite Logo"
                 />
-                <span className="self-center text-3xl font-semibold whitespace-nowrap dark:text-white">
-                  MeetEasy
-                </span>
               </Link>
             </div>
             <div className="grid gap-4">
-              <h1 className="text-4xl font-bold">Sign Up</h1>
+              <h1 className="orbitron-font text-4xl font-bold">Sign Up</h1>
               <p className="text-balance text-muted-foreground">
                 Enter your information to create an account
               </p>
               <form onSubmit={handleSubmit} className="grid gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="first-name">First name</Label>
+                    <Label className="orbitron-font" htmlFor="first-name">
+                      First name
+                    </Label>
                     <Input
                       id="first-name"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="Max"
-                      className={errors.firstName ? "border-red-500" : ""}
+                      className={`bg-gray-100 ${
+                        errors.firstName ? "border-red-500" : ""
+                      }`}
                     />
                     {errors.firstName && (
                       <p className="text-red-500 text-sm">{errors.firstName}</p>
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="last-name">Last name</Label>
+                    <Label className="orbitron-font" htmlFor="last-name">
+                      Last name
+                    </Label>
                     <Input
                       id="last-name"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Robinson"
-                      className={errors.lastName ? "border-red-500" : ""}
+                      className={`bg-gray-100 ${
+                        errors.lastName ? "border-red-500" : ""
+                      }`}
                     />
                     {errors.lastName && (
                       <p className="text-red-500 text-sm">{errors.lastName}</p>
@@ -207,41 +212,52 @@ const SignUp = ({ setLoggedIn }) => {
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label className="orbitron-font" htmlFor="email">
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="m@example.com"
-                    className={errors.email ? "border-red-500" : ""}
+                    className={`bg-gray-100 ${
+                      errors.email ? "border-red-500" : ""
+                    }`}
                   />
                   {errors.email && (
                     <p className="text-red-500 text-sm">{errors.email}</p>
                   )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label className="orbitron-font" htmlFor="password">
+                    Password
+                  </Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={errors.password ? "border-red-500" : ""}
+                    className={`bg-gray-100 ${
+                      errors.password ? "border-red-500" : ""
+                    }`}
                   />
                   {errors.password && (
                     <p className="text-red-500 text-sm">{errors.password}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full bg-black">
+                <Button
+                  type="submit"
+                  className="orbitron-font bg-neutral-700 w-full "
+                >
                   Create an account
                 </Button>
               </form>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <span className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-gray-100 px-2 pt-1 text-muted-foreground">
+                  <span className="text-black bg-orange-50 rounded-lg px-2 pt-1 text-muted-foreground">
                     Or
                   </span>
                 </div>
@@ -249,9 +265,9 @@ const SignUp = ({ setLoggedIn }) => {
               <Button
                 onClick={handleGoogleSignIn}
                 variant="outline"
-                className="w-full"
+                className="orbitron-font w-full"
               >
-                Sign up with Google &nbsp; <FcGoogle size={32} />
+                <FcGoogle size={32} /> &nbsp;Sign up with Google
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

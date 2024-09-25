@@ -61,8 +61,8 @@ const EventDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <div className="min-h-screen max-w-1-xl bg-transparent p-8">
+      <div className=" mx-auto backdrop-blur-2xl p-6 ">
         <div className="flex flex-col items-center ">
           <div className="lg:flex  mb-4">
             <img
@@ -74,7 +74,7 @@ const EventDetails = () => {
             />
           </div>
           <div className="flex flex-col items-center lg:w-2/3 lg:pl-6 mt-6 lg:mt-0">
-            <h1 className="text-3xl font-bold">
+            <h1 className="orbitron-font text-3xl font-bold">
               {event.name ||
                 event.title.replace(
                   /\w\S*/g,
@@ -140,11 +140,11 @@ const EventDetails = () => {
 
             {event.ticketTypes?.length > 0 &&
               (event.ticketTypes[0].price === "0" ? (
-                <Badge className=" mt-2 text-sm text-gray-700 bg-green-100">
+                <Badge className=" mt-2 text-sm text-gray-700 bg-green-100 hover:bg-green-200">
                   Free Event
                 </Badge>
               ) : (
-                <Badge className="mt-2 text-sm text-gray-700 bg-green-100">
+                <Badge className="mt-2 text-sm text-gray-700 bg-green-100 hover:bg-green-200">
                   £{event.ticketTypes[0].price}
                 </Badge>
               ))}
@@ -153,7 +153,7 @@ const EventDetails = () => {
               <div className="mt-4">
                 <Button
                   onClick={() => setShowModal(true)} // Fix typo in onClick
-                  className="bg-black text-white"
+                  className="bg-neutral-700 hover:bg-neutral-800 text-white"
                   disabled={isRegistered}
                 >
                   Get Tickets
@@ -163,7 +163,9 @@ const EventDetails = () => {
 
             {event.description && (
               <div className="mt-4">
-                <h2 className="text-xl font-semibold">Description</h2>
+                <h2 className="orbitron-font text-xl font-semibold">
+                  Description
+                </h2>
                 <p className=" description text-gray-700 mt-2">
                   {event.description}
                 </p>
@@ -176,7 +178,7 @@ const EventDetails = () => {
                     as="a"
                     href={event.url}
                     target="_blank"
-                    className="bg-black text-white"
+                    className="bg-neutral-700 hover:bg-neutral-800 text-white"
                   >
                     Buy Ticket
                   </Button>

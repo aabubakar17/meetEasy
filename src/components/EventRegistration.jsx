@@ -40,6 +40,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import ClipLoader from "react-spinners/ClipLoader";
+import { add } from "date-fns";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -188,36 +189,42 @@ export default function EventRegistration({
     }
   };
 
-  const handleAddEventToGoogleCalendar = () => {
+  const handleAddEventToGoogleCalendar = async () => {
     // Prepare event details for Google Calendar
     const eventDetails = {
       summary: event.title,
       location: event.location || "",
       description: event.description || "",
       start: {
-        // Combine the event date and time
         dateTime: (() => {
-          const eventDate = new Date(event.eventDate.seconds * 1000); // Get the date
-          const [hours, minutes] = event.eventTime.split(":"); // Extract hours and minutes
-          eventDate.setHours(hours, minutes); // Set the event time
+          const eventDate = new Date(event.eventDate.seconds * 1000);
+          const [hours, minutes] = event.eventTime.split(":");
+          eventDate.setHours(hours, minutes);
           return eventDate.toISOString();
         })(),
-        timeZone: "Europe/London", // Valid IANA time zone
+        timeZone: "Europe/London",
       },
       end: {
-        // Set the end time to 1 hour after the start time
         dateTime: (() => {
-          const eventDate = new Date(event.eventDate.seconds * 1000); // Get the date
-          const [hours, minutes] = event.eventTime.split(":"); // Extract hours and minutes
-          eventDate.setHours(hours, minutes); // Set the event time
-          eventDate.setHours(eventDate.getHours() + 1); // Add 1 hour to create the end time
+          const eventDate = new Date(event.eventDate.seconds * 1000);
+          const [hours, minutes] = event.eventTime.split(":");
+          eventDate.setHours(hours, minutes);
+          eventDate.setHours(eventDate.getHours() + 1);
           return eventDate.toISOString();
         })(),
-        timeZone: "Europe/London", // Valid IANA time zone
+        timeZone: "Europe/London",
       },
     };
-    addEventToGoogleCalendar(eventDetails);
-    setIsAddedToGoogleCalendar(true);
+
+    try {
+      setLoading(true); // Show loader while the process is ongoing
+      await addEventToGoogleCalendar(eventDetails); // Await the calendar addition process
+      setIsAddedToGoogleCalendar(true); // Only set this when the event is successfully added
+    } catch (error) {
+      console.error("Error adding event to Google Calendar:", error);
+    } finally {
+      setLoading(false); // Hide loader once the process is done
+    }
   };
 
   const makePayment = async (event) => {
@@ -269,7 +276,7 @@ export default function EventRegistration({
 
   if (isAddedToGoogleCalendar) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed z-50 flex items-start justify-start">
         <div className="relative bg-white p-8 rounded-lg">
           <button
             className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
@@ -302,7 +309,7 @@ export default function EventRegistration({
 
   if (isRegistered) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div className="relative bg-white p-8 rounded-lg">
           <button
             className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
@@ -339,7 +346,7 @@ export default function EventRegistration({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed z-50 mt-4 flex items-center justify-center ">
       <div className="relative bg-white p-8 rounded-lg">
         <button
           className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"

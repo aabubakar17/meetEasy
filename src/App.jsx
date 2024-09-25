@@ -44,7 +44,8 @@ function App() {
   }
 
   return (
-    <div className="bg-[#f9f7f0]">
+    // bg-gradient-to-bl from-transparent from-0% via-white via-0% to-slate-300 to-100%>
+    <div className="bg-gradient-to-tr from-amber-50 from-0% via-stone-300 via-100% ">
       {!isLoginPage && !isSignUpPage && (
         <Navbar loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       )}

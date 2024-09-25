@@ -28,21 +28,18 @@ const Navbar = ({ loggedIn, setLoggedIn }) => {
   };
 
   return (
-    <nav className="sticky top-0 w-full bg-white border-b z-50 px-5 md:px-0">
-      <div className="max-w-screen-2xl flex flex-wrap items-center justify-between mx-auto py-4 px-0">
-        <Link to="/" className="flex items-center -m-4">
+    <nav className="top-0 w-full z-50 no-overflow-x">
+      <div className="flex flex-wrap items-center -end-2 justify-between p-4 md:justify-center py-5 ">
+        <Link to="/" className="flex -ml-10 items-start ">
           <img
-            src="https://flowbite.com/docs/images/logo.svg"
-            className="h-8"
-            alt="Flowbite Logo"
+            src="meetEasy_logo.png"
+            alt="logo"
+            className="w-auto md:-ml-4 h-16 md:h-24 rounded-full"
           />
-          <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-            MeetEasy
-          </span>
         </Link>
 
         {/* SEARCH BAR COMPONENT */}
-        <div className="w-full md:w-2/3 order-3 md:order-1 mt-4 md:mt-0">
+        <div className="w-full md:-ml-24 md:w-2/3 order-3 md:order-1 mt-4 md:mt-0">
           <Searchbar />
         </div>
 
@@ -52,7 +49,7 @@ const Navbar = ({ loggedIn, setLoggedIn }) => {
             onClick={handleToggle}
             aria-controls="navbar-search"
             aria-expanded={isOpen}
-            className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5"
+            className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 rounded-lg text-sm p-2.5"
           >
             <svg
               className="w-5 h-5"
@@ -76,22 +73,22 @@ const Navbar = ({ loggedIn, setLoggedIn }) => {
         <div
           className={`${
             isOpen ? "block" : "hidden"
-          } items-center justify-between w-full md:flex md:w-auto md:order-1`}
+          } items-center bg-transparent justify-between w-full md:flex md:w-auto md:order-1`}
           id="navbar-search"
         >
-          <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700 ml-auto">
+          <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border  rounded-lg  md:flex-row md:space-x-8 md:mt-0 md:border-0 dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-800 ml-auto">
             <li>
               {loggedIn ? (
                 <Link
                   to="/profile"
-                  className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  className="orbitron-font block py-2 px-3 text-neutral-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-neutral-800 md:p-0 dark:text-white md:dark:hover:text-neutral-500 dark:hover:bg-gray-800 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-800"
                 >
                   Profile
                 </Link>
               ) : (
                 <Link
                   to="/login"
-                  className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  className="orbitron-font block py-2 px-3 text-neutral-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-neutral-900 md:p-0 dark:text-white md:dark:hover:text-neutral-500 dark:hover:bg-gray-800 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-800"
                 >
                   Sign Up/Login
                 </Link>
@@ -102,7 +99,7 @@ const Navbar = ({ loggedIn, setLoggedIn }) => {
                 <Link
                   to="/login"
                   onClick={handleLogout}
-                  className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  className="orbitron-font block py-2 px-3 text-neutral-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-neutral-800 md:p-0 dark:text-white md:dark:hover:text-neutral-500 dark:hover:bg-gray-800 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-800"
                 >
                   Logout
                 </Link>
@@ -111,7 +108,7 @@ const Navbar = ({ loggedIn, setLoggedIn }) => {
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                className="orbitron-font block py-2 px-3 text-neutral-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-neutral-900 md:p-0 dark:text-white md:dark:hover:text-neutral-500 dark:hover:bg-gray-800 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-800"
               >
                 Contact
               </a>
