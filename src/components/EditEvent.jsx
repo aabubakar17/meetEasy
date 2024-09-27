@@ -237,7 +237,7 @@ export default function EditEvent() {
       });
 
       // Navigate back to profile or show a success message
-      navigate("/profile");
+      setShowModal(true);
     } catch (error) {
       console.error("Error updating event:", error);
     }
@@ -260,6 +260,7 @@ export default function EditEvent() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter event title"
               className={errors.eventTitle && "border-red-500"}
+              aria-label="Event Title"
             />
             {errors.eventTitle && (
               <p className="text-red-500 text-sm">{errors.eventTitle}</p>
@@ -272,6 +273,7 @@ export default function EditEvent() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe your event"
               className={errors.eventDescription && "border-red-500"}
+              aria-label="Event Description"
             />
             {errors.eventDescription && (
               <p className="text-red-500 text-sm">{errors.eventDescription}</p>
@@ -334,6 +336,7 @@ export default function EditEvent() {
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Event location"
               className={errors.eventLocation && "border-red-500"}
+              aria-label="Event Location"
             />
             {errors.eventLocation && (
               <p className="text-red-500 text-sm">{errors.eventLocation}</p>
@@ -343,13 +346,13 @@ export default function EditEvent() {
           <div className="space-y-2">
             <Label htmlFor="Venue">Venue</Label>
             <Input
-              id="Venue"
               value={venue}
               placeholder="Event Venue"
               onChange={(e) => {
                 setVenue(e.target.value);
               }}
               className={errors.eventVenue && "border-red-500"}
+              aria-label="Event Venue"
             />
             {errors.eventVenue && (
               <p className="text-red-500 text-sm">{errors.eventVenue}</p>
@@ -388,6 +391,7 @@ export default function EditEvent() {
                   }
                   placeholder="Ticket name"
                   className={errors.eventTicketType && "border-red-500"}
+                  aria-label="Ticket Name"
                 />
                 <Input
                   type="number"
@@ -397,12 +401,14 @@ export default function EditEvent() {
                   }
                   placeholder="Price"
                   className={errors.eventTicketType && "border-red-500"}
+                  aria-label="Ticket Price"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => removeTicketType(index)}
+                  aria-label="Remove Ticket Type"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -442,7 +448,10 @@ export default function EditEvent() {
             Upload
           </Button> */}
 
-          <Button type="submit" className="w-full bg-black">
+          <Button
+            type="submit"
+            className="w-full bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+          >
             Update Event
           </Button>
         </form>
@@ -450,9 +459,14 @@ export default function EditEvent() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-8 rounded-lg">
-            <h2 className="text-xl font-semibold">Event Created</h2>
-            <p>Your Event has been successfully created.</p>
-            <Button onClick={handleCloseModal}>Close</Button>
+            <h2 className="text-xl font-semibold">Event Updated</h2>
+            <p>Your Event has been successfully updated.</p>
+            <Button
+              className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+              onClick={handleCloseModal}
+            >
+              Close
+            </Button>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ import { auth } from "./config/firebase";
 import EditEvent from "./components/EditEvent";
 import DeleteEvent from "./components/DeleteEvent";
 import EventDetails from "./components/EventDetails";
+import { ClipLoader } from "react-spinners";
 
 function App() {
   const location = useLocation();
@@ -21,7 +22,6 @@ function App() {
   const isLoginPage = location.pathname === "/login";
   const isSignUpPage = location.pathname === "/signup";
   const [loggedIn, setLoggedIn] = useState(false);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,19 +32,27 @@ function App() {
       } else {
         setLoggedIn(false);
       }
-      setLoading(false); // Update loading state
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [setLoggedIn]);
+  }, [navigate, isLoginPage, isSignUpPage]);
 
   if (loading) {
-    // Optionally show a loading spinner or message
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ClipLoader
+          color="#000"
+          loading={loading}
+          size={150}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </div>
+    );
   }
 
   return (
-    // bg-gradient-to-bl from-transparent from-0% via-white via-0% to-slate-300 to-100%>
     <div className="bg-gradient-to-tr from-amber-50 from-0% via-stone-300 via-100% ">
       {!isLoginPage && !isSignUpPage && (
         <Navbar loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
@@ -54,7 +62,7 @@ function App() {
         <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
         <Route path="/signup" element={<SignUp setLoggedIn={setLoggedIn} />} />
         <Route path="/searchresults" element={<SearchResult />} />
-        <Route path="/profile" element={<Profile />} />
+        {loggedIn && <Route path="/profile" element={<Profile />} />}
         <Route path="/create-event" element={<CreateEvent />} />
         <Route path="/edit-event/:eventId" element={<EditEvent />} />
         <Route path="/delete-event/:eventId" element={<DeleteEvent />} />

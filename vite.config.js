@@ -1,6 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,6 +12,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    proxy: {
+      "/ticketmaster-api": {
+        target: "https://app.ticketmaster.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ticketmaster-api/, ""),
+      },
     },
   },
 });

@@ -11,7 +11,7 @@ export default function FeaturesSection() {
   return (
     <section className="flex items-center bg-neutral-800 justify-center w-full py-16 text-white">
       <div className="container mx-auto text-center px-4">
-        <h2 className="text-3xl font-bold mb-4 orbitron-font">
+        <h2 className="text-3xl text-orange-50 font-bold mb-4 orbitron-font">
           Discover and Create Events Effortlessly
         </h2>
         <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
@@ -61,7 +61,9 @@ function FeatureCard({ icon, title, description }) {
       <div className="bg-gradient-to-tr from-amber-50 from-0% via-stone-300 via-100%  text-neutral-700 p-4 rounded-lg">
         {icon}
       </div>
-      <h3 className="text-lg font-semibold orbitron-font">{title}</h3>
+      <h3 className="text-lg text-orange-50 font-semibold orbitron-font">
+        {title}
+      </h3>
       <p className="text-gray-400 text-sm">{description}</p>
     </div>
   );

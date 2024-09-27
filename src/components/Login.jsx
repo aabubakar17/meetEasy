@@ -10,6 +10,7 @@ import {
   signInWithPopup,
   setPersistence,
   browserLocalPersistence,
+  inMemoryPersistence,
 } from "firebase/auth";
 import {
   doc,
@@ -127,7 +128,7 @@ const Login = ({ setLoggedIn }) => {
 
   return (
     <>
-      <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[1100px]">
+      <div className="w-full flex justify-center min-h-screen xl:grid xl:min-h-[600px] xl:grid-cols-2 xl:min-h-[1100px] 2xl:min-h-screen">
         <div className="flex items-center justify-center p-8">
           <div className="mx-auto grid xl:min-h-[600px] xl:-mt-48 max-w-[800px] gap-6">
             <div className="pt-4">
@@ -190,13 +191,11 @@ const Login = ({ setLoggedIn }) => {
               </Button>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300" />
+                  <span className="w-1/2 border-t border-gray-400 " />
+                  <span className="text-gray-500 text-sm">OR</span>
+                  <span className="w-1/2 border-t border-gray-400 " />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="text-black bg-orange-50 rounded-lg px-2 pt-1 text-muted-foreground">
-                    Or
-                  </span>
-                </div>
+                <div className="relative flex justify-center text-xs uppercase"></div>
               </div>
             </form>
             <Button
@@ -214,7 +213,7 @@ const Login = ({ setLoggedIn }) => {
             </div>
           </div>
         </div>
-        <div className="hidden bg-muted lg:block">
+        <div className="hidden bg-muted xl:block">
           <img
             src="https://images.unsplash.com/photo-1531058020387-3be344556be6?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8OHx8fGVufDB8fHx8fA%3D%3D"
             alt="Image"

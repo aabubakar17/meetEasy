@@ -339,6 +339,7 @@ export default function CreateEventForm() {
                     handleTicketTypeChange(index, "name", e.target.value)
                   }
                   className={errors.eventTicketType ? "border-red-500" : ""}
+                  aria-label="Ticket name"
                 />
                 <Input
                   type="number"
@@ -348,12 +349,14 @@ export default function CreateEventForm() {
                     handleTicketTypeChange(index, "price", e.target.value)
                   }
                   className={errors.eventTicketType ? "border-red-500" : ""}
+                  aria-label="Ticket price"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => removeTicketType(index)}
+                  aria-label="Remove ticket type"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -414,7 +417,10 @@ export default function CreateEventForm() {
           >
             Upload
           </Button> */}
-          <Button type="submit" className="w-full bg-black">
+          <Button
+            type="submit"
+            className="w-full bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+          >
             Create Event
           </Button>
         </form>
@@ -425,7 +431,12 @@ export default function CreateEventForm() {
           <div className="bg-white p-8 rounded-lg">
             <h2 className="text-xl font-semibold">Event Created</h2>
             <p>Your Event has been successfully created.</p>
-            <Button onClick={handleCloseModal}>Close</Button>
+            <Button
+              className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+              onClick={handleCloseModal}
+            >
+              Close
+            </Button>
           </div>
         </div>
       )}

@@ -237,26 +237,54 @@ export default function Profile() {
             {/* Tabs List */}
             {userData?.role === "Event Creator" && (
               <TabsList className="border-b">
-                <TabsTrigger value="events">Events</TabsTrigger>
-                <TabsTrigger value="attendees">Attendees</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger
+                  aria-controls="tab-events"
+                  value="events"
+                  className="text-gray-700"
+                >
+                  Events
+                </TabsTrigger>
+                <TabsTrigger
+                  aria-controls="tab-attendees"
+                  value="attendees"
+                  className="text-gray-700"
+                >
+                  Attendees
+                </TabsTrigger>
+                <TabsTrigger
+                  aria-controls="tab-settings"
+                  value="settings"
+                  className="text-gray-700"
+                >
+                  Settings
+                </TabsTrigger>
               </TabsList>
             )}
 
             {userData?.role === "Event Creator" && (
               <Link to="/create-event">
-                <Button className="ml-4 bg-neutral-700 mt-2 md:mt-0 py-2">
+                <Button className="ml-4 bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700 mt-2 md:mt-0 py-2">
                   Create Events +{" "}
                 </Button>
               </Link>
             )}
 
             {userData?.role === "Event Attendee" && (
-              <TabsList className="border-b">
-                <TabsTrigger value="registered-events">
+              <TabsList className="border-b ">
+                <TabsTrigger
+                  aria-controls="tab-registered-events"
+                  value="registered-events"
+                  className="text-gray-700"
+                >
                   Registered Events
                 </TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger
+                  aria-controls="tab-settings"
+                  value="settings"
+                  className="text-gray-700"
+                >
+                  Settings
+                </TabsTrigger>
               </TabsList>
             )}
           </div>
@@ -281,6 +309,7 @@ export default function Profile() {
                             type="button"
                             variant="outline"
                             size="icon"
+                            aria-label="Edit Event"
                           >
                             <FaEdit />
                           </Button>
@@ -289,6 +318,7 @@ export default function Profile() {
                             type="button"
                             variant="outline"
                             size="icon"
+                            aria-label="Delete Event"
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -451,7 +481,12 @@ export default function Profile() {
                 <div className="bg-white p-8 rounded-lg">
                   <h2 className="text-xl font-semibold">Profile Updated</h2>
                   <p>Your profile has been updated successfully.</p>
-                  <Button onClick={handleCloseModal}>Close</Button>
+                  <Button
+                    className="mt-2 bg-neutral-700"
+                    onClick={handleCloseModal}
+                  >
+                    Close
+                  </Button>
                 </div>
               </div>
             )}
@@ -509,8 +544,18 @@ export default function Profile() {
             <h2 className="text-xl font-semibold">Delete Event</h2>
             <p>Are you sure you want to delete your event?</p>
             <div className="flex gap-4 mt-4">
-              <Button onClick={handleDeleteEvent}>Delete event</Button>
-              <Button onClick={() => setShowDeleteModal(false)}>Close</Button>
+              <Button
+                className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+                onClick={handleDeleteEvent}
+              >
+                Delete event
+              </Button>
+              <Button
+                className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>

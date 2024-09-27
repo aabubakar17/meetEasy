@@ -41,6 +41,7 @@ const Searchbar = () => {
             className="block bg-transparent p-2.5 pl-10 w-full z-20 text-base text- rounded-l-full border-2 border-r-0 border-gray-600 outline-none"
             placeholder="Search events"
             onChange={(e) => setEvent(e.target.value)}
+            aria-label="Search events"
             required
           />
         </div>
@@ -70,12 +71,13 @@ const Searchbar = () => {
             className="block bg-transparent p-2.5 pl-10 w-full z-20 text-base text-black rounded-r-full border-2 border-l-0 border-gray-600 outline-none"
             placeholder="Location"
             onChange={(e) => setLocation(e.target.value)}
+            aria-label="Search Location"
             required
           />
 
           <button
             type="submit"
-            className="absolute top-0 right-0 px-4 text-sm font-medium h-full text-white bg-neutral-700 rounded-full bg-gray-700 hover:bg-neutral-800"
+            className="absolute top-0 right-0 px-4 text-sm font-medium h-full text-white  rounded-full  bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
             onClick={handleSubmit}
           >
             <svg

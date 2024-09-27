@@ -11,7 +11,7 @@ const FileDropzone = ({ setFile, className }) => {
 
   return (
     <div {...getRootProps({ className: className })}>
-      <input {...getInputProps()} />
+      <input {...getInputProps()} aria-label="image uploader" />
       {isDragActive ? (
         <div className="flex flex-col items-center justify-center">
           <FaRegFileImage className="h-12 w-12 " />

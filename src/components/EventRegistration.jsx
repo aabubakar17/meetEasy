@@ -276,11 +276,12 @@ export default function EventRegistration({
 
   if (isAddedToGoogleCalendar) {
     return (
-      <div className="fixed z-50 flex items-start justify-start">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div className="relative bg-white p-8 rounded-lg">
           <button
             className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
             onClick={onClose}
+            aria-label="Close Modal"
           >
             <XIcon className="w-5 h-5" />
           </button>
@@ -309,11 +310,12 @@ export default function EventRegistration({
 
   if (isRegistered) {
     return (
-      <div className="fixed z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div className="relative bg-white p-8 rounded-lg">
           <button
             className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
             onClick={onClose}
+            aria-label="Close Modal"
           >
             <XIcon className="w-5 h-5" />
           </button>
@@ -336,7 +338,7 @@ export default function EventRegistration({
                 className="w-full"
                 variant="outline"
               >
-                Add Event to Google Calendar &nbsp; <FcGoogle size={32} />
+                <FcGoogle size={32} /> &nbsp; Add Event to Google Calendar
               </Button>
             </CardFooter>
           </Card>
@@ -346,11 +348,12 @@ export default function EventRegistration({
   }
 
   return (
-    <div className="fixed z-50 mt-4 flex items-center justify-center ">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="relative bg-white p-8 rounded-lg">
         <button
           className="absolute top-1 right-1 p-2 rounded-full hover:bg-gray-200"
           onClick={onClose}
+          aria-label="Close Modal"
         >
           <XIcon className="w-5 h-5" />
         </button>
@@ -466,7 +469,10 @@ export default function EventRegistration({
                     <CardElement id="card" options={{ hidePostalCode: true }} />
                   </div>
                 )}
-                <Button type="submit" className="w-full">
+                <Button
+                  type="submit"
+                  className="w-full bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+                >
                   {isFree ? "Register" : "Purchase Tickets"}
                 </Button>
               </form>

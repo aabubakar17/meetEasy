@@ -18,7 +18,12 @@ const DeleteEvent = () => {
             <p>
               Please make sure you are happy to permanently delete this event{" "}
             </p>
-            <Button onClick={handleCloseModal}>Close</Button>
+            <Button
+              className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700"
+              onClick={handleCloseModal}
+            >
+              Close
+            </Button>
           </div>
         </div>
       )}

@@ -2,9 +2,9 @@ import { Ticket, Calendar, Key } from "lucide-react";
 
 export default function HowItWorks() {
   return (
-    <section className="w-full py-16 text-black relative overflow-hidden">
+    <section className="w-full mx-0 py-16 text-black relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('/blur-background.png')] opacity-50 mix-blend-screen"></div>
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-2 md:px-4 relative z-10">
         <h2 className="orbitron-font text-4xl font-bold mb-16 text-center">
           How it works
         </h2>
@@ -52,7 +52,7 @@ function WigglyPath() {
       preserveAspectRatio="none"
     >
       <path
-        d="M25,0 Q40,200 10,400 Q-20,600 25,800"
+        d="M25,0 Q15,200 10,400 Q-0,600 20,10000"
         fill="none"
         stroke="rgba(0,0,0,0.5)"
         strokeWidth="2"
@@ -96,13 +96,13 @@ function Step({ number, title, description, image, icon, imageLeft }) {
       </div>
       <div className="w-1/2 space-y-4">
         <div
-          className={`flex items-center gap-4 ${
+          className={`flex items-center gap-1 ${
             imageLeft ? "justify-start" : "justify-end"
           }`}
         >
           <div
-            className={`w-12 h-12 rounded-full bg-neutral-800 text-white flex items-center justify-center text-2xl font-bold ${
-              imageLeft ? "order-first" : "order-last"
+            className={`w-12 h-12 p-4 rounded-full bg-neutral-800 text-white flex items-center justify-center text-2xl font-bold ${
+              imageLeft ? "order-first" : "order-first"
             }`}
           >
             {number}

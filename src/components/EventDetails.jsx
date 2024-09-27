@@ -9,6 +9,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { auth, db } from "../config/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
+import { ClipLoader } from "react-spinners";
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const EventDetails = () => {
@@ -54,14 +55,20 @@ const EventDetails = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="flex min-h-screen justify-center items-center">
+        <ClipLoader
+          color="#000"
+          loading="true"
+          size={150}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen max-w-1-xl bg-transparent p-8">
+    <div className="bg-transparent ">
       <div className=" mx-auto backdrop-blur-2xl p-6 ">
         <div className="flex flex-col items-center ">
           <div className="lg:flex  mb-4">
@@ -69,7 +76,7 @@ const EventDetails = () => {
               src={
                 event.imageUrl || event.images?.[0]?.url || "default-image.jpg"
               }
-              alt={event.name}
+              alt={`${event.name || event.title} event image`}
               className="w-full h-96 object-cover rounded-lg "
             />
           </div>

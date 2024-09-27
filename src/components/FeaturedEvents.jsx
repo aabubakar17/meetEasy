@@ -1,18 +1,25 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import { getEvents } from "../services/getEvents.service";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ClipLoader } from "react-spinners";
 
 export default function FeaturedEvents() {
   const [events, setEvents] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getEvents().then((data) => {
+    const fetchEvents = async () => {
+      setLoading(true); // Start loading
+      const data = await getEvents();
       setEvents(data);
-    });
+      setLoading(false); // Stop loading after data is fetched
+    };
+
+    fetchEvents();
   }, []);
 
   useEffect(() => {
@@ -35,6 +42,20 @@ export default function FeaturedEvents() {
 
   if (events.length === 0) return null;
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen justify-center items-center">
+        <ClipLoader
+          color="#000"
+          loading={loading}
+          size={150}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="w-11/12 mx-auto text-center m-8 md:p-12 ">
       <AnimatePresence mode="wait">
@@ -47,7 +68,7 @@ export default function FeaturedEvents() {
         >
           <div className="flex flex-col items-start justify-between mb-6 w-full">
             <motion.h2
-              className="orbitron-font text-6xl  mb-4 text-left w-full "
+              className="orbitron-font text-4xl md:text-6xl mb-4 text-left w-full text-ellipsis overflow-hidden "
               variants={{
                 hidden: { opacity: 0, y: 50 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -83,13 +104,26 @@ export default function FeaturedEvents() {
               <p className="text-lg mb-4">
                 {events[currentIndex]._embedded.venues[0].name}
               </p>
-              <button className="bg-neutral-800 text-white py-2 px-6 rounded-lg text-lg font-semibold hover:bg-opacity-90 transition-colors">
-                Get Ticket
-              </button>
+
+              <Link
+                to={events[currentIndex].url}
+                target="_blank"
+                className="text-blue-500"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  as="a"
+                  href={events[currentIndex].url}
+                  target="_blank"
+                  className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700 text-lg font-semibold text-white"
+                >
+                  Get Ticket
+                </Button>
+              </Link>
             </motion.div>
           </div>
           <motion.div
-            className="w-full h-96 relative rounded-lg overflow-hidden"
+            className="w-full h-auto md:h-96 relative rounded-lg overflow-hidden"
             variants={{
               hidden: { opacity: 0, scale: 0.9 },
               visible: {

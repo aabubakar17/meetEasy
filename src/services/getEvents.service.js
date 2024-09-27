@@ -1,36 +1,47 @@
 const TICKETMASTER_API_KEY = import.meta.env
   .VITE_REACT_APP_TICKETMASTER_API_KEY;
 import axios from "axios";
+import pLimit from "p-limit";
 
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
-
+const limit = pLimit(10);
 // Function to fetch events by classification
-const fetchEventsByClassification = async (classification) => {
+const fetchEventsByClassification = async (classification, retries = 3) => {
   try {
     const response = await axios.get(
-      `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}&size=1&classificationName=${classification}&city=london`
+      `/ticketmaster-api/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}&size=1&classificationName=${classification}&city=london`
     );
+
     return response.data._embedded?.events || [];
   } catch (error) {
-    console.error(`Error fetching ${classification} events:`, error);
-    return [];
+    if (error.response && error.response.status === 429) {
+      // Handle rate-limiting (429) error and retry after a delay
+      if (retries > 0) {
+        console.warn(`Rate limit hit. Retrying for ${classification}...`);
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * (4 - retries))
+        ); // Exponential backoff
+        return fetchEventsByClassification(classification, retries - 1);
+      } else {
+        // Instead of logging an error, you can simply return an empty array
+        return [];
+      }
+    } else {
+      // Log other errors but suppress the 429 error
+      console.error(`Error fetching ${classification} events:`, error.message);
+      return [];
+    }
   }
 };
 
 // Main function to fetch events from multiple classifications
 export const getEvents = async () => {
   try {
-    const classifications = [
-      "Arts & Theatre",
-      "sports",
-      "comedy",
-      "family",
-      "music",
-      "film",
-    ]; // Add more classifications as needed
+    const classifications = ["Arts & Theatre", "sports", "family", "film"]; // Add more classifications as needed
+
     const eventPromises = classifications.map((classification) =>
-      fetchEventsByClassification(classification)
+      limit(() => fetchEventsByClassification(classification))
     );
 
     // Resolve all promises and merge events from different classifications
