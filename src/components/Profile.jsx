@@ -47,6 +47,8 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [groupedAttendees, setGroupedAttendees] = useState({});
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,7 +114,6 @@ export default function Profile() {
           const registeredEventIds = attendeesRegSnapshot.docs.map(
             (doc) => doc.data().eventId
           );
-          console.log("Registered event IDs:", registeredEventIds);
 
           if (registeredEventIds.length !== 0) {
             // Fetch details for registered events
@@ -127,7 +128,7 @@ export default function Profile() {
               id: doc.id,
               ...doc.data(),
             }));
-            console.log("Registered events:", registeredEventsList);
+
             setRegisteredEvents(registeredEventsList);
           } else {
             setRegisteredEvents([]);
@@ -159,7 +160,6 @@ export default function Profile() {
           lastLoginAt: serverTimestamp(),
         });
         setShowModal(true);
-        console.log("Profile updated successfully");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -183,11 +183,17 @@ export default function Profile() {
         await deleteDoc(eventRef); // Delete the event from Firestore
         setEvents(events.filter((event) => event.id !== selectedEventId)); // Update local state to remove the event
         setShowDeleteModal(false); // Close the modal
-        console.log("Event deleted successfully");
       }
     } catch (error) {
       console.error("Error deleting event:", error);
     }
+  };
+
+  const handleViewAttendees = (eventData) => {
+    // Add logic to view attendees
+
+    setAttendees(eventData.attendees);
+    setShowAttendeesModal(true);
   };
 
   if (loading)
@@ -408,13 +414,53 @@ export default function Profile() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button variant="outline">View Attendees</Button>
+                    <Button
+                      onClick={() => {
+                        handleViewAttendees(eventData);
+                      }}
+                      variant="outline"
+                    >
+                      View Attendees
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
           </TabsContent>
 
+          {showAttendeesModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-8 rounded-lg">
+                <h2 className="text-xl py-4 font-semibold">Attendees</h2>
+                <div className="grid gap-4">
+                  {attendees.map((attendee, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <Avatar>
+                        <AvatarImage
+                          src={attendee.photoURL || "/placeholder-user.jpg"}
+                        />
+                        <AvatarFallback>
+                          {attendee.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{attendee.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {attendee.email}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  className="mt-4 text-orange-100 bg-neutral-700 hover:bg-orange-100 hover:text-black hover:border hover:border-neutral-700"
+                  onClick={() => setShowAttendeesModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
           <TabsContent value="settings">
             <Card>
               <CardHeader>
@@ -471,7 +517,10 @@ export default function Profile() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="bg-neutral-700" onClick={handleSaveChanges}>
+                <Button
+                  className="bg-neutral-700 text-orange-100 hover:bg-orange-100 hover:text-neutral-700 hover:border hover:border-neutral-700"
+                  onClick={handleSaveChanges}
+                >
                   Save Changes
                 </Button>
               </CardFooter>
@@ -482,7 +531,7 @@ export default function Profile() {
                   <h2 className="text-xl font-semibold">Profile Updated</h2>
                   <p>Your profile has been updated successfully.</p>
                   <Button
-                    className="mt-2 bg-neutral-700"
+                    className="mt-2 bg-neutral-700 text-orange-100 hover:bg-orange-100 hover:text-neutral-700 hover:border hover:border-neutral-700"
                     onClick={handleCloseModal}
                   >
                     Close

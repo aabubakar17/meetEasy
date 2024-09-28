@@ -51,7 +51,9 @@ export default function EventRegistration({
   setIsRegistered,
 }) {
   const { eventId } = useParams();
-  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [ticketQuantities, setTicketQuantities] = useState(
+    event.ticketTypes?.map(() => 0) || []
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [alert, setAlert] = useState(false);
@@ -65,8 +67,23 @@ export default function EventRegistration({
     email: "",
   });
 
-  const isFree = event.ticketTypes?.[0]?.price === "0";
-  const ticketPrice = !isFree ? parseFloat(event.ticketTypes?.[0]?.price) : 0;
+  const isFree = event.ticketTypes?.every((type) => type.price === "0");
+  const calculateTotal = () => {
+    return ticketQuantities
+      .reduce((total, quantity, index) => {
+        const price = parseFloat(event.ticketTypes[index].price);
+        return total + price * quantity;
+      }, 0)
+      .toFixed(2);
+  };
+
+  const handleTicketQuantityChange = (index, increment) => {
+    setTicketQuantities((prevQuantities) =>
+      prevQuantities.map((quantity, i) =>
+        i === index ? Math.max(0, quantity + increment) : quantity
+      )
+    );
+  };
 
   const validateForm = () => {
     let valid = true;
@@ -94,9 +111,11 @@ export default function EventRegistration({
   };
 
   useEffect(() => {
-    if (!isFree && ticketQuantity > 0) {
+    const total = calculateTotal();
+
+    if (!isFree && total > 0) {
       const fetchClientSecret = async () => {
-        setLoading(true); // Set loading to true before fetching
+        setLoading(true);
         try {
           const response = await fetch(
             "https://meeteasy-xl05.onrender.com/create-payment-intent",
@@ -106,7 +125,7 @@ export default function EventRegistration({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                amount: Math.round(ticketPrice * ticketQuantity * 100), // Convert to cents
+                amount: Math.round(total * 100), // Convert to cents
               }),
             }
           );
@@ -116,76 +135,68 @@ export default function EventRegistration({
           }
 
           const responseText = await response.text();
-          console.log("Raw response:", responseText); // Log raw response for debugging
+          const { clientSecret } = JSON.parse(responseText);
 
-          try {
-            const { clientSecret } = JSON.parse(responseText);
-            if (!clientSecret || !clientSecret.startsWith("pi_")) {
-              throw new Error("Invalid client secret received from server");
-            }
-            setClientSecret(clientSecret);
-          } catch (jsonError) {
-            throw new Error(
-              "Error parsing JSON response: " + jsonError.message
-            );
+          if (!clientSecret || !clientSecret.startsWith("pi_")) {
+            throw new Error("Invalid client secret received from server");
           }
+
+          setClientSecret(clientSecret);
         } catch (error) {
           console.error("Error fetching client secret:", error);
         } finally {
-          setLoading(false); // Set loading to false after fetching
+          setLoading(false);
         }
       };
+
       fetchClientSecret();
     }
-  }, [ticketQuantity, ticketPrice, isFree]);
+  }, [ticketQuantities, isFree]);
 
   const handleSubmit = async (e) => {
     if (e) {
       e.preventDefault();
     }
-    if (validateForm()) {
-      try {
-        // Check if the email is already registered for this event
-        const attendeesRef = collection(db, "attendees");
-        const q = query(
-          attendeesRef,
-          where("eventId", "==", eventId),
-          where("email", "==", email)
-        );
-        const querySnapshot = await getDocs(q);
+    if (!validateForm()) return;
+    try {
+      // Check if the email is already registered for this event
+      const attendeesRef = collection(db, "attendees");
+      const q = query(
+        attendeesRef,
+        where("eventId", "==", eventId),
+        where("email", "==", email)
+      );
+      const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-          console.log("Already registered for this event");
-          setAlert(true);
-          return;
-        }
-
-        // Update ticketsSold field in the events collection
-        const eventRef = doc(db, "events", eventId);
-        await updateDoc(eventRef, {
-          ticketsSold: increment(ticketQuantity), // Increment by the number of tickets
-        });
-
-        // Add attendee information
-        await addDoc(attendeesRef, {
-          name,
-          email,
-          eventId,
-          eventTitle: event.title,
-          eventDate: event.eventDate,
-          imageUrl: event.imageUrl,
-          tickets: ticketQuantity,
-        });
-
-        // Add the event to Google Calendar
-        sendRegistrationEmail(email, event);
-
-        setIsRegistered(true);
-      } catch (error) {
-        console.error("Error adding document: ", error);
+      if (!querySnapshot.empty) {
+        console.log("Already registered for this event");
+        setAlert(true);
+        return;
       }
-    } else {
-      return;
+
+      // Update ticketsSold field in the events collection
+      const eventRef = doc(db, "events", eventId);
+
+      // Add attendee information
+      await addDoc(attendeesRef, {
+        name,
+        email,
+        eventId,
+        eventTitle: event.title,
+        eventDate: event.eventDate,
+        imageUrl: event.imageUrl,
+        tickets: ticketQuantities,
+      });
+
+      // Add the event to Google Calendar
+      sendRegistrationEmail(email, event);
+      await updateDoc(eventRef, {
+        ticketsSold: increment(ticketQuantities.reduce((a, b) => a + b, 0)), // Increment by the number of tickets
+      });
+
+      setIsRegistered(true);
+    } catch (error) {
+      console.error("Error adding document: ", error);
     }
   };
 
@@ -207,7 +218,9 @@ export default function EventRegistration({
       end: {
         dateTime: (() => {
           const eventDate = new Date(event.eventDate.seconds * 1000);
-          const [hours, minutes] = event.eventTime.split(":");
+          const [hours, minutes] = event.eventTime
+            ? event.eventTime.split(":")
+            : [0, 0];
           eventDate.setHours(hours, minutes);
           eventDate.setHours(eventDate.getHours() + 1);
           return eventDate.toISOString();
@@ -249,6 +262,9 @@ export default function EventRegistration({
     }
 
     const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      return;
+    }
 
     if (!alert) {
       const { error, paymentIntent } = await stripe.confirmCardPayment(
@@ -382,37 +398,6 @@ export default function EventRegistration({
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                    <span>
-                      {event.eventDate
-                        ? typeof event.eventDate.seconds === "number"
-                          ? new Date(
-                              event.eventDate.seconds * 1000
-                            ).toLocaleDateString()
-                          : new Date(event.eventDate).toLocaleDateString()
-                        : "TBD"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <ClockIcon className="w-4 h-4 text-muted-foreground" />
-                    <span>
-                      {event.dates?.start?.localTime
-                        ? ` ${event.dates.start.localTime.substring(0, 5)}`
-                        : event.eventTime
-                        ? ` ${event.eventTime}`
-                        : ""}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <MapPinIcon className="w-4 h-4 text-muted-foreground" />
-                    <span>{event.location || "Location not provided"}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input
                     onChange={(e) => setName(e.target.value)}
@@ -437,32 +422,41 @@ export default function EventRegistration({
                 </div>
 
                 {!isFree && (
-                  <div className="space-y-2">
-                    <Label htmlFor="tickets">Number of Tickets</Label>
-                    <Select
-                      value={ticketQuantity.toString()}
-                      onValueChange={(value) =>
-                        setTicketQuantity(parseInt(value))
-                      }
-                    >
-                      <SelectTrigger id="tickets">
-                        <SelectValue placeholder="Select quantity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 4, 5].map((num) => (
-                          <SelectItem key={num} value={num.toString()}>
-                            {num}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div>
+                    {event.ticketTypes?.map((ticketType, index) => (
+                      <div
+                        key={ticketType.name}
+                        className="flex items-center justify-between mb-4"
+                      >
+                        <span>
+                          {ticketType.name} - £{ticketType.price}
+                        </span>
+                        <div className="flex items-center">
+                          <Button
+                            onClick={() =>
+                              handleTicketQuantityChange(index, -1)
+                            }
+                            disabled={ticketQuantities[index] === 0}
+                          >
+                            -
+                          </Button>
+                          <span className="mx-2">
+                            {ticketQuantities[index]}
+                          </span>
+                          <Button
+                            onClick={() => handleTicketQuantityChange(index, 1)}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="mb-4 text-lg font-semibold">
+                      Total: £{calculateTotal()}
+                    </div>
                   </div>
                 )}
-                {!isFree && (
-                  <div className="mb-4 text-lg font-semibold">
-                    Total: £{(ticketPrice * ticketQuantity).toFixed(2)}
-                  </div>
-                )}
+
                 {!isFree && (
                   <div className="space-y-2">
                     <Label htmlFor="card">Card Details</Label>
@@ -482,8 +476,8 @@ export default function EventRegistration({
         )}
 
         {alert && (
-          <div className="absolute bottom-0 left-0 right-0 bg-red-500 text-white p-2 text-center rounded-lg">
-            You are already registered for this event
+          <div className="absolute bottom-0 left-0 right-0 bg-red-500 text-white p-4">
+            You've already registered for this event.
           </div>
         )}
       </div>

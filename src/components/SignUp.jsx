@@ -107,7 +107,7 @@ const SignUp = ({ setLoggedIn }) => {
         });
 
         // Redirect and log in
-        console.log("User signed up and saved:", user);
+
         setLoggedIn(true);
         navigate("/profile");
       } catch (error) {
@@ -146,8 +146,6 @@ const SignUp = ({ setLoggedIn }) => {
           { merge: true }
         );
       }
-
-      console.log("User logged in with Google:", user);
       setLoggedIn(true);
       navigate("/profile");
     } catch (error) {

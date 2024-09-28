@@ -49,7 +49,7 @@ const Navbar = ({ loggedIn, setLoggedIn }) => {
             onClick={handleToggle}
             aria-controls="navbar-search"
             aria-expanded={isOpen}
-            className="2xl:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 rounded-2xl text-sm p-2.5"
+            className="2xl:hidden text-gray-500 dark:text-gray-400 hover:bg-neutral-700 dark:hover:bg-neutral-800 focus:outline-none focus:ring-4 focus:ring-neutral-400 dark:focus:ring-neutral-800 rounded-2xl text-sm p-2.5"
           >
             <svg
               className="w-5 h-5"

@@ -218,8 +218,6 @@ export default function EditEvent() {
         newImageUrl = await uploadImage();
       }
 
-      console.log(eventDate);
-
       // Generate titleKeywords based on the event title
       const titleKeywords = generateKeywords(title);
 

@@ -145,16 +145,19 @@ const EventDetails = () => {
               </span>
             }
 
-            {event.ticketTypes?.length > 0 &&
-              (event.ticketTypes[0].price === "0" ? (
-                <Badge className=" mt-2 text-sm text-gray-700 bg-green-100 hover:bg-green-200">
-                  Free Event
-                </Badge>
-              ) : (
-                <Badge className="mt-2 text-sm text-gray-700 bg-green-100 hover:bg-green-200">
-                  £{event.ticketTypes[0].price}
-                </Badge>
-              ))}
+            {event.ticketTypes?.length > 0 && (
+              <div className="mt-2">
+                {event.ticketTypes.map((ticket, index) => (
+                  <Badge
+                    key={index}
+                    className="mb-2 mr-2 text-sm text-gray-700 bg-green-100 hover:bg-green-200"
+                  >
+                    {ticket.name}:{" "}
+                    {ticket.price === "0" ? "Free" : `£${ticket.price}`}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {!event.url && (
               <div className="mt-4">

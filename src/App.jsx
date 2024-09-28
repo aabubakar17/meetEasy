@@ -28,7 +28,6 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setLoggedIn(true);
-        console.log("User is logged in");
       } else {
         setLoggedIn(false);
       }

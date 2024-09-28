@@ -65,7 +65,6 @@ const Login = ({ setLoggedIn }) => {
 
         // Get the signed-in user
         const user = userCredential.user;
-        console.log("User logged in:", user);
 
         // Update lastLoginAt in Firestore
         const userDocRef = doc(db, "users", user.uid);
@@ -116,15 +115,12 @@ const Login = ({ setLoggedIn }) => {
         );
       }
 
-      console.log("User logged in with Google:", user);
       setLoggedIn(true);
       navigate("/profile");
     } catch (error) {
       console.error("Error logging in with Google:", error.message);
     }
   };
-
-  console.log(auth?.currentUser?.email);
 
   return (
     <>
@@ -185,7 +181,7 @@ const Login = ({ setLoggedIn }) => {
               </div>
               <Button
                 type="submit"
-                className="bg-neutral-700 w-full hoover:bg-neutral-600"
+                className="orbitron-font bg-neutral-700 w-full hoover:bg-neutral-600"
               >
                 Login
               </Button>
@@ -201,7 +197,7 @@ const Login = ({ setLoggedIn }) => {
             <Button
               onClick={handleGoogleSignIn}
               variant="outline"
-              className="w-full border border-neutral-800"
+              className="w-full orbitron-font "
             >
               <FcGoogle size={32} /> &nbsp; Login with Google
             </Button>
