@@ -10,7 +10,7 @@ const limit = pLimit(10);
 const fetchEventsByClassification = async (classification, retries = 3) => {
   try {
     const response = await axios.get(
-      `/ticketmaster-api/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}&size=1&classificationName=${classification}&city=london`
+      `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}&size=1&classificationName=${classification}&city=london`
     );
 
     return response.data._embedded?.events || [];
