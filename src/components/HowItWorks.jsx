@@ -3,7 +3,7 @@ import { Ticket, Calendar, Key } from "lucide-react";
 export default function HowItWorks() {
   return (
     <section className="w-full mx-0 py-16 text-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('/blur-background.png')] opacity-50 mix-blend-screen"></div>
+      <div className="absolute inset-0 opacity-50 mix-blend-screen"></div>
       <div className="container mx-auto px-2 md:px-4 relative z-10">
         <h2 className="orbitron-font text-4xl font-bold mb-16 text-center">
           How it works

@@ -151,7 +151,7 @@ export default function EventRegistration({
 
       fetchClientSecret();
     }
-  }, [ticketQuantities, isFree]);
+  }, [isFree, ticketQuantities]);
 
   const handleSubmit = async (e) => {
     if (e) {
@@ -403,6 +403,7 @@ export default function EventRegistration({
                     onChange={(e) => setName(e.target.value)}
                     id="name"
                     className={errors.fullName ? "border-red-500" : ""}
+                    value={name}
                   />
                   {errors.fullName && (
                     <p className="text-red-500 text-sm">{errors.fullName}</p>
@@ -415,6 +416,7 @@ export default function EventRegistration({
                     id="email"
                     type="email"
                     className={errors.email ? "border-red-500" : ""}
+                    value={email}
                   />
                   {errors.email && (
                     <p className="text-red-500 text-sm">{errors.email}</p>
@@ -433,9 +435,10 @@ export default function EventRegistration({
                         </span>
                         <div className="flex items-center">
                           <Button
-                            onClick={() =>
-                              handleTicketQuantityChange(index, -1)
-                            }
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleTicketQuantityChange(index, -1);
+                            }}
                             disabled={ticketQuantities[index] === 0}
                           >
                             -
@@ -444,7 +447,10 @@ export default function EventRegistration({
                             {ticketQuantities[index]}
                           </span>
                           <Button
-                            onClick={() => handleTicketQuantityChange(index, 1)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleTicketQuantityChange(index, 1);
+                            }}
                           >
                             +
                           </Button>
