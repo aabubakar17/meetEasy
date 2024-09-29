@@ -387,9 +387,46 @@ export default function EventRegistration({
         ) : (
           <Card className="w-full max-w-md mx-auto">
             <CardHeader>
-              <CardTitle>{event.name || event.title}</CardTitle>
+              <CardTitle>
+                {" "}
+                {(event.name || event.title).replace(
+                  /\w\S*/g,
+                  (text) =>
+                    text.charAt(0).toUpperCase() +
+                    text.substring(1).toLowerCase()
+                )}
+              </CardTitle>
               <CardDescription>
                 Register for this exciting event!
+                {event.eventDate && (
+                  <div className="flex items-center mt-2 space-x-2">
+                    <CalendarIcon className="w-5 h-5" />
+                    <span>
+                      {new Date(
+                        event.eventDate.seconds * 1000
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {event.eventTime && (
+                  <div className="flex items-center mt-2 space-x-2">
+                    <ClockIcon className="w-5 h-5" />
+                    <span>{event.eventTime}</span>
+                  </div>
+                )}
+                {event.location && (
+                  <div className="flex items-center mt-2 space-x-2">
+                    <MapPinIcon className="w-5 h-5" />
+                    <span>
+                      {event.location.replace(
+                        /\w\S*/g,
+                        (text) =>
+                          text.charAt(0).toUpperCase() +
+                          text.substring(1).toLowerCase()
+                      )}
+                    </span>
+                  </div>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>

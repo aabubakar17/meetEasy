@@ -115,7 +115,7 @@ export default function FeaturedEvents() {
                   as="a"
                   href={events[currentIndex].url}
                   target="_blank"
-                  className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700 text-lg font-semibold text-white"
+                  className="bg-neutral-700 text-orange-100 hover:bg-orange-100 hover:text-neutral-700 hover:border hover:border-neutral-700 text-lg font-semibold"
                 >
                   Get Ticket
                 </Button>

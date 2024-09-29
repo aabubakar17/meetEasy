@@ -332,7 +332,6 @@ export default function Profile() {
                       </div>
 
                       <CardDescription className="flex flex-row items-center justify-between">
-                        <span>Tickets sold: {event.ticketsSold}</span>
                         <Button
                           onClick={() => navigate(`/event-details/${event.id}`)}
                           variant="outline"

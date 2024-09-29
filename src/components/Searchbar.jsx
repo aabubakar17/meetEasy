@@ -77,7 +77,7 @@ const Searchbar = () => {
 
           <button
             type="submit"
-            className="absolute top-0 right-0 px-4 text-sm font-medium h-full text-white  rounded-full  bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
+            className="absolute top-0 right-0 px-4 text-sm font-medium h-full text-orange-100  rounded-full  bg-neutral-700 text-orange-100 hover:bg-orange-100 hover:text-neutral-700 hover:border hover:border-neutral-700"
             onClick={handleSubmit}
           >
             <svg
