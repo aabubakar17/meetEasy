@@ -119,6 +119,10 @@ VITE_EMAILJS_TEMPLATE_ID=your-emailjs-template-api-key
 VITE_EMAILJS_USER_ID=your-emailjs-user-api-key
 ```
 
+## Important Notes
+
+**Rate Limiting**: The Ticketmaster API enforces rate limiting. We've implemented a rate limiter to avoid excessive requests, but some requests may still fail due to restrictions.
+
 ## Issues
 
 If you encounter any issues, feel free to contact me at abubakarabdihakim01@gmail.com.
