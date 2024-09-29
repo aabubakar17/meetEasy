@@ -101,7 +101,7 @@ const SignUp = ({ setLoggedIn }) => {
           displayName: user.displayName || `${firstName} ${lastName}`,
           email: user.email,
           photoURL: user.photoURL || "",
-          role: "user", // Default role
+          role: "Event Creator", // Default role
           createdAt: serverTimestamp(), // Firestore timestamp
           lastLoginAt: serverTimestamp(), // Timestamp for login
         });
@@ -132,7 +132,7 @@ const SignUp = ({ setLoggedIn }) => {
           displayName: user.displayName || "",
           email: user.email,
           photoURL: user.photoURL || "",
-          role: "Event Attendee", // Default role
+          role: "Event Creator", // Default role
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp(),
         });

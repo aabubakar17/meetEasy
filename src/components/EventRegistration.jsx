@@ -477,6 +477,7 @@ export default function EventRegistration({
                               handleTicketQuantityChange(index, -1);
                             }}
                             disabled={ticketQuantities[index] === 0}
+                            className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
                           >
                             -
                           </Button>
@@ -488,6 +489,7 @@ export default function EventRegistration({
                               e.preventDefault();
                               handleTicketQuantityChange(index, 1);
                             }}
+                            className="bg-neutral-700 text-orange-50 hover:bg-orange-50 hover:text-neutral-700 hover:border hover:border-neutral-700"
                           >
                             +
                           </Button>
