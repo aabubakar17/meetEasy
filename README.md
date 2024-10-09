@@ -28,7 +28,21 @@ The payment feature is integrated with **Stripe** and is currently in **test mod
 
 This app includes integration with Google Calendar, allowing users to add events to their calendars once they register for them. However, this feature is undergoing **Google verification**.
 
-If you would like to test this feature, please contact me via email at [abubakarabdihakim01@gmail.com](mailto:abubakarabdihakim01@gmail.com) to request a test user account.
+### Test User Accounts
+
+To test the Google Calendar functionality, you can use the following test user accounts to log in with Google:
+
+**Sarah Robin** (default role: Event Attendee)
+
+- **Email**: sarah.robin120503@gmail.com
+- **Password**: s120503!
+
+**Harry Peters** (default role: Event Creator)
+
+- **Email**: harry.peters140696@gmail.com
+- **Password**: h140696!
+
+**Note**: You can change the roles for both accounts in the settings tab located in the profile section of the application.
 
 ## Email Notifications (EmailJS)
 
@@ -36,7 +50,12 @@ When users register for an event, they receive a confirmation email containing t
 
 ## Prerequisites for Local Development
 
-1. **Node.js** and **npm** installed.
+1. **Node** and **npm**:
+
+   - **Node.js**: Version **17.9.1** or higher (developed with **Node.js 17.9.1**)
+
+   - **npm**: Version **8.11.0** or higher (comes bundled with Node.js)
+
 2. **Vite** for running the React app.
 3. **Firebase Project Setup**:
    - Set up a Firebase project with **Firestore**, **Firebase Storage**, and **Firebase Authentication** enabled.

@@ -9,12 +9,12 @@ import {
 
 export default function FeaturesSection() {
   return (
-    <section className="flex items-center bg-neutral-800 justify-center w-full py-16 text-white">
+    <section className="flex items-center justify-center w-full py-16 text-white">
       <div className="container mx-auto text-center px-4">
-        <h2 className="text-3xl text-orange-100 font-bold mb-4 orbitron-font">
+        <h2 className="text-3xl text-neutral-800 font-bold mb-4 orbitron-font">
           Discover and Create Events Effortlessly
         </h2>
-        <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
+        <p className="text-gray-600 mb-12 max-w-2xl mx-auto">
           Whether you're attending or hosting, our platform makes it easy to
           find and organize events with just a few clicks.
         </p>
@@ -58,13 +58,13 @@ export default function FeaturesSection() {
 function FeatureCard({ icon, title, description }) {
   return (
     <div className="flex flex-col items-center text-center space-y-3">
-      <div className="bg-gradient-to-tr from-orange-100 from-0% via-stone-300 via-100%  text-neutral-700 p-4 rounded-lg">
+      <div className="bg-neutral-800 text-orange-100 p-4 rounded-lg">
         {icon}
       </div>
-      <h3 className="text-lg text-orange-100 font-semibold orbitron-font">
+      <h3 className="text-lg text-neutral-800 font-semibold orbitron-font">
         {title}
       </h3>
-      <p className="text-gray-400 text-sm">{description}</p>
+      <p className="text-gray-600 text-sm">{description}</p>
     </div>
   );
 }

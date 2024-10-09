@@ -2,10 +2,10 @@ import { Ticket, Calendar, Key } from "lucide-react";
 
 export default function HowItWorks() {
   return (
-    <section className="w-full mx-0 py-16 text-black relative overflow-hidden">
+    <section className="w-full mx-0 py-16 bg-neutral-800 text-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-50 mix-blend-screen"></div>
       <div className="container mx-auto px-2 md:px-4 relative z-10">
-        <h2 className="orbitron-font text-4xl font-bold mb-16 text-center">
+        <h2 className="orbitron-font text-orange-100 text-3xl font-bold mb-16 text-center">
           How it works
         </h2>
         <div className="relative">
@@ -54,7 +54,7 @@ function WigglyPath() {
       <path
         d="M25,0 Q15,200 10,400 Q-0,600 20,10000"
         fill="none"
-        stroke="rgba(0,0,0,0.5)"
+        stroke="rgba(255, 237, 213)"
         strokeWidth="2"
         strokeDasharray="8 8"
       />
@@ -77,7 +77,7 @@ function Step({ number, title, description, image, icon, imageLeft }) {
         />
 
         <div
-          className={`absolute -top-4 w-12 h-12 text-white bg-neutral-800 rounded-full flex items-center justify-center ${
+          className={`absolute -top-4 w-12 h-12 text-neutral-800 bg-gradient-to-tr from-orange-100 via-0% to-stone-300  rounded-full flex items-center justify-center ${
             imageLeft ? "-right-4" : "-left-4"
           }`}
         >
@@ -101,15 +101,17 @@ function Step({ number, title, description, image, icon, imageLeft }) {
           }`}
         >
           <div
-            className={`w-12 h-12 p-4 rounded-full bg-neutral-800 text-white flex items-center justify-center text-2xl font-bold ${
+            className={`w-10 h-10 p-4 rounded-full bg-gradient-to-tr from-orange-100 via-0% to-stone-300  text-neutral-800 flex items-center justify-center text-2xl font-bold ${
               imageLeft ? "order-first" : "order-first"
             }`}
           >
             {number}
           </div>
-          <h3 className="orbitron-font text-2xl font-bold">{title}</h3>
+          <h3 className="orbitron-font text-orange-100 text-xl font-bold">
+            {title}
+          </h3>
         </div>
-        <p className="text-gray-500  text-sm">{description}</p>
+        <p className="text-gray-400  text-sm">{description}</p>
       </div>
     </div>
   );

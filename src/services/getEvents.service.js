@@ -7,10 +7,16 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 const limit = pLimit(10);
 // Function to fetch events by classification
-const fetchEventsByClassification = async (classification, retries = 3) => {
+export const fetchEventsByClassification = async (
+  classification,
+  retries = 3,
+  size
+) => {
   try {
     const response = await axios.get(
-      `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}&size=1&classificationName=${classification}&city=london`
+      `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}&size=${
+        size || 1
+      }&classificationName=${classification}&city=london`
     );
 
     return response.data._embedded?.events || [];
