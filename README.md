@@ -1,10 +1,14 @@
 # MeetEasy
+[Features](#features) | [Stripe Payment](#stripe-payment) | [Google Calendar Integration](#google-calendar-integration) | [Test User Accounts](#test-user-accounts) | [Email Notifications (EmailJS)](#email-notifications-emailjs) | [Prerequisites for Local Development](#prerequisites-for-local-development) | [Firebase Configuration](#Example-Firebase-Configuration-firebasejs) | [Running the Application Locally](#running-the-application-locally) | [Stripe Setup](#stripe-setup) | [Environment Variables](#environment-variables) | [Important Notes](#important-notes) | [Issues](#issues)
 
-meetEasy is a web application that allows users to discover, create, and register for community created events as well as Ticketmaster events. It is built with React (Vite) & Tailwind for the frontend and Firebase for the backend (Firestore, Firebase Storage, and Authentication).
+meetEasy is a web application that allows users to discover, create, and register for community-created events as well as Ticketmaster events. It is built with React (Vite) & Tailwind for the front end and Firebase for the back end (Firestore, Firebase Storage, and Authentication).
 
 ## Hosted Version
 
 You can find the hosted version of the application [here](https://meeteasy-244a4.web.app/)
+
+
+
 
 ## Features
 
@@ -71,7 +75,7 @@ When users register for an event, they receive a confirmation email containing t
      - **Storage**
      - **Authentication** (Google Sign-In enabled)
 
-### Example Firebase Configuration (`firebase.js`)
+### Example Firebase Configuration (Firebase.js)
 
 ```javascript
 // firebase.js
