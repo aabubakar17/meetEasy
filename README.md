@@ -1,4 +1,5 @@
 # MeetEasy
+
 [Features](#features) | [Stripe Payment](#stripe-payment) | [Google Calendar Integration](#google-calendar-integration) | [Test User Accounts](#test-user-accounts) | [Email Notifications (EmailJS)](#email-notifications-emailjs) | [Prerequisites for Local Development](#prerequisites-for-local-development) | [Firebase Configuration](#Example-Firebase-Configuration-firebasejs) | [Running the Application Locally](#running-the-application-locally) | [Stripe Setup](#stripe-setup) | [Environment Variables](#environment-variables) | [Important Notes](#important-notes) | [Issues](#issues)
 
 meetEasy is a web application that allows users to discover, create, and register for community-created events as well as Ticketmaster events. It is built with React (Vite) & Tailwind for the front end and Firebase for the back end (Firestore, Firebase Storage, and Authentication).
@@ -6,9 +7,6 @@ meetEasy is a web application that allows users to discover, create, and registe
 ## Hosted Version
 
 You can find the hosted version of the application [here](https://meeteasy-244a4.web.app/)
-
-
-
 
 ## Features
 
@@ -47,6 +45,9 @@ To test the Google Calendar functionality, you can use the following test user a
 - **Password**: h140696!
 
 **Note**: You can change the roles for both accounts in the settings tab located in the profile section of the application.
+
+**NOTE**:  
+If you encounter Google’s **“Verify it’s you”** prompt, it’s due to logging in from an unfamiliar device/location. The test accounts are each other’s recovery email, so you can verify the login by accessing the other account and entering the security code.
 
 ## Email Notifications (EmailJS)
 
